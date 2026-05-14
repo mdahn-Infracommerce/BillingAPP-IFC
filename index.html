@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Auditoría de Facturación — Infracommerce</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  /* ── Design tokens ── */
+  :root {
+    --bg-primary:   #ffffff;
+    --bg-secondary: #f5f5f0;
+    --bg-tertiary:  #eeeee8;
+    --bg-info:      #e6f1fb;
+    --bg-success:   #eaf3de;
+    --bg-warning:   #faeeda;
+    --bg-danger:    #fcebeb;
+    --text-primary:   #1a1a18;
+    --text-secondary: #5f5e5a;
+    --text-tertiary:  #888780;
+    --text-info:    #0c447c;
+    --text-success: #27500a;
+    --text-warning: #633806;
+    --text-danger:  #791f1f;
+    --border-subtle:  rgba(0,0,0,.13);
+    --border-mid:     rgba(0,0,0,.25);
+    --border-strong:  rgba(0,0,0,.38);
+    --border-info:    #b5d4f4;
+    --border-warning: #fac775;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+    --font-sans: system-ui, -apple-system, "Segoe UI", sans-serif;
+    --font-mono: ui-monospace, "Cascadia Code", monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg-primary:   #1e1e1c;
+      --bg-secondary: #2a2a27;
+      --bg-tertiary:  #141412;
+      --bg-info:      #0c2a45;
+      --bg-success:   #172808;
+      --bg-warning:   #2e1c06;
+      --bg-danger:    #2e0e0e;
+      --text-primary:   #f0efea;
+      --text-secondary: #b4b2a9;
+      --text-tertiary:  #888780;
+      --text-info:    #85b7eb;
+      --text-success: #97c459;
+      --text-warning: #ef9f27;
+      --text-danger:  #f09595;
+      --border-subtle:  rgba(255,255,255,.12);
+      --border-mid:     rgba(255,255,255,.22);
+      --border-strong:  rgba(255,255,255,.35);
+      --border-info:    #185fa5;
+      --border-warning: #854f0b;
+    }
+  }
+
+  /* ── Reset ── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: var(--font-sans);
+    font-size: 15px;
+    line-height: 1.6;
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+  }
+
+  /* ── Login screen ── */
+  #login-screen {
+    position: fixed; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--bg-tertiary);
+    z-index: 100;
+  }
+  .login-card {
+    background: var(--bg-primary);
+    border: 0.5px solid var(--border-subtle);
+    border-radius: var(--radius-xl);
+    padding: 2rem 2.25rem;
+    width: 100%; max-width: 360px;
+    box-shadow: 0 4px 32px rgba(0,0,0,.08);
+  }
+  .login-logo {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 1.75rem;
+  }
+  .login-logo-icon {
+    width: 38px; height: 38px; border-radius: var(--radius-md);
+    background: var(--bg-info); color: var(--text-info);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+  }
+  .login-logo-text { font-size: 15px; font-weight: 500; color: var(--text-primary); }
+  .login-logo-sub  { font-size: 12px; color: var(--text-secondary); }
+  .login-card h1   { font-size: 18px; font-weight: 500; margin-bottom: .25rem; }
+  .login-card p    { font-size: 13px; color: var(--text-secondary); margin-bottom: 1.5rem; }
+  .field + .field  { margin-top: 10px; }
+  .field label     { display: block; font-size: 12px; color: var(--text-secondary); margin-bottom: 4px; }
+  .field input {
+    width: 100%; padding: 8px 10px; font-size: 14px;
+    border: 0.5px solid var(--border-mid);
+    border-radius: var(--radius-md);
+    background: var(--bg-primary); color: var(--text-primary);
+    font-family: var(--font-sans);
+  }
+  .field input:focus { outline: none; border-color: var(--border-strong); box-shadow: 0 0 0 3px rgba(100,120,200,.12); }
+  #login-error { font-size: 12px; color: var(--text-danger); margin-top: 8px; min-height: 16px; }
+  .btn-primary {
+    width: 100%; margin-top: 1.25rem; padding: 9px;
+    font-size: 14px; font-weight: 500; cursor: pointer;
+    border: none; border-radius: var(--radius-md);
+    background: var(--text-primary); color: var(--bg-primary);
+    font-family: var(--font-sans); transition: opacity .15s;
+  }
+  .btn-primary:hover { opacity: .85; }
+  .btn-primary:active { transform: scale(.98); }
+
+  /* ── App layout ── */
+  #app { display: none; min-height: 100vh; }
+  .topbar {
+    position: sticky; top: 0; z-index: 10;
+    background: var(--bg-primary);
+    border-bottom: 0.5px solid var(--border-subtle);
+    padding: 0 1.5rem;
+    display: flex; align-items: center; justify-content: space-between;
+    height: 52px;
+  }
+  .topbar-left { display: flex; align-items: center; gap: 10px; }
+  .topbar-icon {
+    width: 30px; height: 30px; border-radius: var(--radius-md);
+    background: var(--bg-info); color: var(--text-info);
+    display: flex; align-items: center; justify-content: center; font-size: 16px;
+  }
+  .topbar-title { font-size: 14px; font-weight: 500; }
+  .topbar-sub   { font-size: 11px; color: var(--text-secondary); }
+  .topbar-right { display: flex; align-items: center; gap: 8px; }
+  .btn-ghost {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 5px 10px; font-size: 12px; font-weight: 500;
+    border: 0.5px solid var(--border-mid); border-radius: var(--radius-md);
+    background: transparent; color: var(--text-primary); cursor: pointer;
+    font-family: var(--font-sans);
+  }
+  .btn-ghost:hover { background: var(--bg-secondary); }
+  .btn-ghost:active { transform: scale(.98); }
+
+  /* ── Tabs ── */
+  .tab-bar-wrap { padding: 1rem 1.5rem 0; }
+  .tab-bar {
+    display: flex; gap: 2px;
+    background: var(--bg-secondary);
+    padding: 3px; border-radius: var(--radius-md);
+    width: fit-content;
+  }
+  .tab {
+    padding: 6px 14px; font-size: 13px; font-weight: 500;
+    border-radius: var(--radius-md); border: none;
+    background: transparent; color: var(--text-secondary);
+    cursor: pointer; font-family: var(--font-sans);
+    display: flex; align-items: center; gap: 5px;
+  }
+  .tab.active {
+    background: var(--bg-primary); color: var(--text-primary);
+    border: 0.5px solid var(--border-subtle);
+  }
+  .tab:not(.active):hover { background: var(--bg-tertiary); }
+
+  /* ── Content area ── */
+  .content { padding: 1.25rem 1.5rem 2.5rem; }
+
+  /* ── Metric cards ── */
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 10px; margin-bottom: 1.25rem;
+  }
+  .metric {
+    background: var(--bg-secondary);
+    border-radius: var(--radius-md);
+    padding: .875rem 1rem;
+  }
+  .metric-label { font-size: 11px; color: var(--text-secondary); margin-bottom: 4px; }
+  .metric-val   { font-size: 22px; font-weight: 500; }
+  .metric-sub   { font-size: 11px; color: var(--text-tertiary); margin-top: 2px; }
+
+  /* ── Cards ── */
+  .card {
+    background: var(--bg-primary);
+    border: 0.5px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    padding: 1rem 1.25rem;
+    margin-bottom: 1rem;
+  }
+  .section-title {
+    font-size: 11px; font-weight: 500; text-transform: uppercase;
+    letter-spacing: .06em; color: var(--text-secondary); margin-bottom: 10px;
+  }
+
+  /* ── Badges ── */
+  .badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 11px; font-weight: 500;
+    padding: 3px 8px; border-radius: var(--radius-md);
+  }
+  .badge-ok      { background: #eaf3de; color: #27500a; }
+  .badge-alert   { background: #faeeda; color: #633806; }
+  .badge-error   { background: #fcebeb; color: #791f1f; }
+  .badge-pending { background: #f1efe8; color: #444441; }
+  @media (prefers-color-scheme: dark) {
+    .badge-ok      { background: #172808; color: #97c459; }
+    .badge-alert   { background: #2e1c06; color: #ef9f27; }
+    .badge-error   { background: #2e0e0e; color: #f09595; }
+    .badge-pending { background: #2a2a27; color: #b4b2a9; }
+  }
+
+  /* ── Notices ── */
+  .notice {
+    padding: 10px 14px; border-radius: var(--radius-md);
+    font-size: 12px; display: flex; align-items: flex-start; gap: 8px;
+    margin-bottom: 8px;
+  }
+  .notice-info    { background: var(--bg-info);    border: 0.5px solid var(--border-info);    color: var(--text-info); }
+  .notice-warning { background: var(--bg-warning); border: 0.5px solid var(--border-warning); color: var(--text-warning); }
+  .notice-success { background: var(--bg-success); border: 0.5px solid #c0dd97; color: var(--text-success); }
+
+  /* ── Table ── */
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed; }
+  thead th {
+    font-size: 11px; font-weight: 500; color: var(--text-secondary);
+    text-align: left; padding: 8px 10px;
+    border-bottom: 0.5px solid var(--border-subtle); white-space: nowrap;
+  }
+  tbody td {
+    padding: 9px 10px; border-bottom: 0.5px solid var(--border-subtle);
+    color: var(--text-primary); vertical-align: middle; word-break: break-word;
+  }
+  tbody tr:hover { background: var(--bg-secondary); }
+
+  /* ── Form ── */
+  .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin-bottom: 10px; }
+  .form-group label { display: block; font-size: 12px; color: var(--text-secondary); margin-bottom: 4px; }
+  .form-group input, .form-group select, .form-group textarea {
+    width: 100%; padding: 7px 10px; font-size: 13px;
+    border: 0.5px solid var(--border-mid);
+    border-radius: var(--radius-md);
+    background: var(--bg-primary); color: var(--text-primary);
+    font-family: var(--font-sans);
+  }
+  .form-group input:focus, .form-group select:focus { outline: none; border-color: var(--border-strong); box-shadow: 0 0 0 3px rgba(100,120,200,.1); }
+  .err-note { font-size: 11px; color: var(--text-danger); margin-top: 3px; }
+
+  /* ── Filters ── */
+  .filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+  .filters input, .filters select {
+    padding: 6px 10px; font-size: 13px;
+    border: 0.5px solid var(--border-mid); border-radius: var(--radius-md);
+    background: var(--bg-primary); color: var(--text-primary); font-family: var(--font-sans);
+  }
+
+  /* ── Chart legend ── */
+  .chart-legend {
+    display: flex; flex-wrap: wrap; gap: 14px;
+    font-size: 12px; color: var(--text-secondary); margin-top: 8px;
+  }
+  .chart-legend span { display: flex; align-items: center; gap: 5px; }
+  .legend-swatch { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+
+  /* ── Responsive ── */
+  @media (max-width: 600px) {
+    .topbar { padding: 0 1rem; }
+    .content { padding: 1rem; }
+    .tab-bar-wrap { padding: .75rem 1rem 0; }
+    .tab { padding: 6px 10px; font-size: 12px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ══════════════ LOGIN ══════════════ -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="login-logo-icon"><i class="ti ti-receipt-2" aria-hidden="true"></i></div>
+      <div>
+        <div class="login-logo-text">Infracommerce</div>
+        <div class="login-logo-sub">Auditoría de Facturación</div>
+      </div>
+    </div>
+    <h1>Iniciar sesión</h1>
+    <p>Acceso restringido al equipo de facturación.</p>
+    <div class="field">
+      <label for="login-user">Usuario</label>
+      <input id="login-user" type="text" autocomplete="username" placeholder="usuario" />
+    </div>
+    <div class="field">
+      <label for="login-pass">Contraseña</label>
+      <input id="login-pass" type="password" autocomplete="current-password" placeholder="••••••••" />
+    </div>
+    <div id="login-error"></div>
+    <button class="btn-primary" onclick="doLogin()">Ingresar</button>
+  </div>
+</div>
+
+<!-- ══════════════ APP ══════════════ -->
+<div id="app">
+
+  <header class="topbar">
+    <div class="topbar-left">
+      <div class="topbar-icon"><i class="ti ti-receipt-2" aria-hidden="true"></i></div>
+      <div>
+        <div class="topbar-title">Auditoría de Facturación</div>
+        <div class="topbar-sub">Infracommerce · Go Personal</div>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <button class="btn-ghost" onclick="exportCSV()"><i class="ti ti-download" aria-hidden="true"></i> Exportar CSV</button>
+      <button class="btn-ghost" onclick="doLogout()"><i class="ti ti-logout" aria-hidden="true"></i> Salir</button>
+    </div>
+  </header>
+
+  <div class="tab-bar-wrap">
+    <nav class="tab-bar" role="tablist">
+      <button class="tab active" role="tab" onclick="switchTab('dashboard')"><i class="ti ti-chart-bar" aria-hidden="true"></i> Dashboard</button>
+      <button class="tab" role="tab" onclick="switchTab('ingresar')"><i class="ti ti-plus" aria-hidden="true"></i> Ingresar factura</button>
+      <button class="tab" role="tab" onclick="switchTab('tabla')"><i class="ti ti-table" aria-hidden="true"></i> Auditoría</button>
+    </nav>
+  </div>
+
+  <main class="content">
+
+    <!-- ── DASHBOARD ── -->
+    <section id="tab-dashboard">
+      <div id="metrics-grid" class="metrics-grid"></div>
+
+      <div class="card">
+        <p class="section-title">Margen por marca — esperado vs. real</p>
+        <div style="position:relative;width:100%;height:220px">
+          <canvas id="chartBrand" role="img" aria-label="Gráfico comparativo de margen esperado vs real por marca"></canvas>
+        </div>
+        <div class="chart-legend" id="chart-legend"></div>
+      </div>
+
+      <div id="alertas-panel"></div>
+    </section>
+
+    <!-- ── INGRESAR ── -->
+    <section id="tab-ingresar" style="display:none">
+      <div class="card">
+        <p class="section-title" style="margin-bottom:14px">Registrar nueva factura Go Personal</p>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>N° factura GP *</label>
+            <input id="f-id" placeholder="GP-2024-001" />
+            <div class="err-note" id="err-id"></div>
+          </div>
+          <div class="form-group">
+            <label>Marca / Cliente *</label>
+            <select id="f-marca">
+              <option value="">— seleccionar —</option>
+              <option>NGR</option><option>Hiraoka</option>
+              <option>Tailoy</option><option>Softys</option><option>Otro</option>
+            </select>
+            <div class="err-note" id="err-marca"></div>
+          </div>
+          <div class="form-group">
+            <label>Período de servicio *</label>
+            <input id="f-periodo" type="month" />
+            <div class="err-note" id="err-periodo"></div>
+          </div>
+          <div class="form-group">
+            <label>Fecha recepción factura *</label>
+            <input id="f-recepcion" type="date" />
+            <div class="err-note" id="err-recepcion"></div>
+          </div>
+        </div>
+        <div class="form-grid">
+          <div class="form-group" style="grid-column:1/-1">
+            <label>Detalle de servicio *</label>
+            <input id="f-servicio" placeholder="Ej: Horas personal almacén — Abril 2024" />
+            <div class="err-note" id="err-servicio"></div>
+          </div>
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Costo GP (S/) *</label>
+            <input id="f-costo" type="number" min="0" step="0.01" placeholder="0.00" />
+            <div class="err-note" id="err-costo"></div>
+          </div>
+          <div class="form-group">
+            <label>Importe factura cliente (S/)</label>
+            <input id="f-cliente" type="number" min="0" step="0.01" placeholder="0.00 (opcional)" />
+          </div>
+          <div class="form-group">
+            <label>N° factura cliente</label>
+            <input id="f-nfactura" placeholder="FC-2024-..." />
+          </div>
+        </div>
+
+        <div id="preview-margen" style="margin-bottom:12px"></div>
+
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn-ghost" style="background:var(--bg-info);border-color:var(--border-info);color:var(--text-info)" onclick="registrarFactura()">
+            <i class="ti ti-check" aria-hidden="true"></i> Registrar factura
+          </button>
+          <button class="btn-ghost" onclick="limpiarFormulario()">
+            <i class="ti ti-eraser" aria-hidden="true"></i> Limpiar
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── TABLA ── -->
+    <section id="tab-tabla" style="display:none">
+      <div class="filters">
+        <input id="filtro-buscar" placeholder="Buscar factura, marca…" style="min-width:180px" oninput="renderTabla()" />
+        <select id="filtro-estado" onchange="renderTabla()">
+          <option value="">Todos los estados</option>
+          <option>Aprobado</option><option>Alerta de Margen</option>
+          <option>Discrepancia</option><option>Pendiente</option>
+        </select>
+        <select id="filtro-marca" onchange="renderTabla()">
+          <option value="">Todas las marcas</option>
+          <option>NGR</option><option>Hiraoka</option>
+          <option>Tailoy</option><option>Softys</option>
+        </select>
+      </div>
+      <div class="card" style="padding:0;overflow:hidden">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:100px">Factura GP</th>
+                <th style="width:80px">Marca</th>
+                <th style="width:85px">Período</th>
+                <th style="width:115px">Servicio</th>
+                <th style="width:105px;text-align:right">Costo GP (S/)</th>
+                <th style="width:75px;text-align:right">Margen</th>
+                <th style="width:140px">FC cliente esperada</th>
+                <th style="width:110px;text-align:right">FC real (S/)</th>
+                <th style="width:90px;text-align:center">Desfase</th>
+                <th style="width:120px">Estado</th>
+              </tr>
+            </thead>
+            <tbody id="tbody"></tbody>
+          </table>
+        </div>
+        <p id="sin-datos" style="text-align:center;color:var(--text-tertiary);font-size:13px;padding:2rem;display:none">
+          No hay facturas que coincidan con los filtros.
+        </p>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+/* ══════════════════════════════════════
+   CONFIGURACIÓN — cambiar antes de subir
+   ══════════════════════════════════════ */
+const CREDENCIALES = {
+  usuario: "infracommerce",
+  password: "IFC2024!"
+};
+
+/* ── Reglas de negocio ── */
+const MARGENES = {
+  NGR:    { tipo: "fijo",  valor: 0.10 },
+  Hiraoka:{ tipo: "fijo",  valor: 0.20 },
+  Tailoy: { tipo: "rango", min: 0.15, max: 0.20 },
+  Softys: { tipo: "rango", min: 0.15, max: 0.20 },
+  Otro:   { tipo: "rango", min: 0.15, max: 0.20 },
+};
+const MARGENES_LABEL = { NGR:"10%", Hiraoka:"20%", Tailoy:"15–20%", Softys:"15–20%", Otro:"15–20%" };
+
+/* ── Auth ── */
+function doLogin(){
+  const u = document.getElementById("login-user").value.trim();
+  const p = document.getElementById("login-pass").value;
+  if(u === CREDENCIALES.usuario && p === CREDENCIALES.password){
+    sessionStorage.setItem("ifc_auth","1");
+    document.getElementById("login-screen").style.display = "none";
+    document.getElementById("app").style.display = "block";
+    renderDashboard();
+  } else {
+    document.getElementById("login-error").textContent = "Usuario o contraseña incorrectos.";
+  }
+}
+document.getElementById("login-pass").addEventListener("keydown", e => { if(e.key==="Enter") doLogin(); });
+document.getElementById("login-user").addEventListener("keydown", e => { if(e.key==="Enter") doLogin(); });
+
+function doLogout(){
+  sessionStorage.removeItem("ifc_auth");
+  document.getElementById("login-screen").style.display = "flex";
+  document.getElementById("app").style.display = "none";
+  document.getElementById("login-pass").value = "";
+  document.getElementById("login-error").textContent = "";
+}
+
+if(sessionStorage.getItem("ifc_auth")==="1"){
+  document.getElementById("login-screen").style.display = "none";
+  document.getElementById("app").style.display = "block";
+}
+
+/* ── Datos ── */
+let facturas = JSON.parse(localStorage.getItem("ifc_facturas") || "null") || demo();
+
+function demo(){
+  return [
+    {id:"GP-2024-001",marca:"NGR",    periodo:"2024-03",servicio:"Horas personal picking",   costo:10000,clienteReal:11000, nfactura:"FC-2024-041",recepcion:"2024-04-05"},
+    {id:"GP-2024-002",marca:"Hiraoka",periodo:"2024-03",servicio:"Personal logístico",        costo:8500, clienteReal:10500, nfactura:"FC-2024-042",recepcion:"2024-04-08"},
+    {id:"GP-2024-003",marca:"Tailoy", periodo:"2024-02",servicio:"Operadores almacén",        costo:5000, clienteReal:5900,  nfactura:"FC-2024-031",recepcion:"2024-04-20"},
+    {id:"GP-2024-004",marca:"Softys", periodo:"2024-03",servicio:"Supervisores turno",        costo:7200, clienteReal:8500,  nfactura:"FC-2024-043",recepcion:"2024-04-10"},
+    {id:"GP-2024-005",marca:"NGR",    periodo:"2024-04",servicio:"Horas personal packing",    costo:12000,clienteReal:13800, nfactura:"",           recepcion:"2024-05-02"},
+    {id:"GP-2024-006",marca:"Hiraoka",periodo:"2024-01",servicio:"Auxiliar inventario",       costo:4000, clienteReal:null,  nfactura:"",           recepcion:"2024-04-15"},
+  ];
+}
+
+function guardar(){ localStorage.setItem("ifc_facturas", JSON.stringify(facturas)); }
+
+/* ── Lógica de negocio ── */
+function calcStatus(f){
+  const r = parseFloat(f.clienteReal);
+  const c = parseFloat(f.costo);
+  if(!r || isNaN(r)) return "Pendiente";
+  const mr = (r - c) / c;
+  const reg = MARGENES[f.marca] || MARGENES.Otro;
+  let ok = reg.tipo === "fijo"
+    ? Math.abs(mr - reg.valor) < 0.005
+    : mr >= reg.min - 0.001 && mr <= reg.max + 0.001;
+  if(!ok) return "Alerta de Margen";
+  if(desfase(f) > 30) return "Discrepancia";
+  return "Aprobado";
+}
+
+function desfase(f){
+  if(!f.periodo || !f.recepcion) return 0;
+  const fin = new Date(f.periodo + "-01");
+  fin.setMonth(fin.getMonth() + 1); fin.setDate(0);
+  return Math.max(0, Math.round((new Date(f.recepcion) - fin) / 86400000));
+}
+
+function margenReal(f){
+  const r = parseFloat(f.clienteReal), c = parseFloat(f.costo);
+  if(!r || isNaN(r)) return null;
+  return (r - c) / c;
+}
+
+function fcEsperada(f){
+  const c = parseFloat(f.costo);
+  const reg = MARGENES[f.marca] || MARGENES.Otro;
+  if(reg.tipo === "fijo") return "S/ " + fmt(c * (1 + reg.valor));
+  return "S/ " + fmt(c * (1 + reg.min)) + " – " + fmt(c * (1 + reg.max));
+}
+
+function fmt(n){ return Number(n).toLocaleString("es-PE",{minimumFractionDigits:2,maximumFractionDigits:2}); }
+
+function badge(s){
+  const cls = {Aprobado:"badge-ok","Alerta de Margen":"badge-alert",Discrepancia:"badge-error",Pendiente:"badge-pending"};
+  const ico = {Aprobado:"ti-check","Alerta de Margen":"ti-alert-triangle",Discrepancia:"ti-x",Pendiente:"ti-clock"};
+  return `<span class="badge ${cls[s]||"badge-pending"}"><i class="ti ${ico[s]||"ti-help"}" aria-hidden="true"></i>${s}</span>`;
+}
+
+/* ── Tabs ── */
+function switchTab(t){
+  ["dashboard","ingresar","tabla"].forEach(id=>{
+    document.getElementById("tab-"+id).style.display = id===t?"block":"none";
+  });
+  document.querySelectorAll(".tab").forEach((b,i)=>{
+    b.classList.toggle("active",["dashboard","ingresar","tabla"][i]===t);
+  });
+  if(t==="tabla") renderTabla();
+  if(t==="dashboard") renderDashboard();
+}
+
+/* ── Dashboard ── */
+function renderDashboard(){
+  const total   = facturas.length;
+  const apro    = facturas.filter(f=>calcStatus(f)==="Aprobado").length;
+  const alertM  = facturas.filter(f=>calcStatus(f)==="Alerta de Margen").length;
+  const disc    = facturas.filter(f=>calcStatus(f)==="Discrepancia").length;
+  const pend    = facturas.filter(f=>calcStatus(f)==="Pendiente").length;
+  const cTotal  = facturas.reduce((a,f)=>a+parseFloat(f.costo||0),0);
+
+  document.getElementById("metrics-grid").innerHTML = `
+    <div class="metric"><p class="metric-label">Total facturas</p><p class="metric-val">${total}</p></div>
+    <div class="metric"><p class="metric-label">Aprobadas</p><p class="metric-val" style="color:var(--text-success)">${apro}</p></div>
+    <div class="metric"><p class="metric-label">Alerta margen</p><p class="metric-val" style="color:var(--text-warning)">${alertM}</p></div>
+    <div class="metric"><p class="metric-label">Discrepancia</p><p class="metric-val" style="color:var(--text-danger)">${disc}</p></div>
+    <div class="metric"><p class="metric-label">Pendientes</p><p class="metric-val" style="color:var(--text-tertiary)">${pend}</p></div>
+    <div class="metric"><p class="metric-label">Costo total GP</p><p class="metric-val" style="font-size:16px">S/ ${fmt(cTotal)}</p></div>
+  `;
+
+  const marcas = [...new Set(facturas.map(f=>f.marca))];
+  const isDark = matchMedia("(prefers-color-scheme:dark)").matches;
+
+  const espData = marcas.map(m=>{
+    const reg = MARGENES[m]||MARGENES.Otro;
+    return reg.tipo==="fijo" ? reg.valor*100 : ((reg.min+reg.max)/2*100);
+  });
+  const realData = marcas.map(m=>{
+    const fs = facturas.filter(f=>f.marca===m && f.clienteReal && !isNaN(parseFloat(f.clienteReal)));
+    if(!fs.length) return null;
+    return parseFloat((fs.reduce((a,f)=>a+margenReal(f),0)/fs.length*100).toFixed(1));
+  });
+
+  const existing = Chart.getChart("chartBrand");
+  if(existing) existing.destroy();
+  new Chart(document.getElementById("chartBrand"),{
+    type:"bar",
+    data:{
+      labels: marcas,
+      datasets:[
+        {label:"Esperado",   data:espData,  backgroundColor:"#B5D4F4",borderColor:"#378ADD",borderWidth:1,borderRadius:4},
+        {label:"Real prom.", data:realData, backgroundColor:"#9FE1CB",borderColor:"#1D9E75",borderWidth:1,borderRadius:4}
+      ]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ display:false } },
+      scales:{
+        x:{ grid:{color:isDark?"rgba(255,255,255,.07)":"rgba(0,0,0,.06)"}, ticks:{color:isDark?"#B4B2A9":"#5F5E5A",font:{size:12}} },
+        y:{ min:0, max:28, ticks:{color:isDark?"#B4B2A9":"#5F5E5A",font:{size:11},callback:v=>v+"%"}, grid:{color:isDark?"rgba(255,255,255,.07)":"rgba(0,0,0,.06)"} }
+      }
+    }
+  });
+
+  document.getElementById("chart-legend").innerHTML = `
+    <span><span class="legend-swatch" style="background:#B5D4F4"></span>Margen esperado</span>
+    <span><span class="legend-swatch" style="background:#9FE1CB"></span>Margen real promedio</span>
+  `;
+
+  const alertas   = facturas.filter(f=>calcStatus(f)==="Alerta de Margen");
+  const desfasads = facturas.filter(f=>desfase(f)>30);
+  let html = "";
+
+  if(alertas.length || desfasads.length){
+    html += `<p class="section-title">Alertas activas</p>`;
+    alertas.forEach(f=>{
+      const mr = margenReal(f);
+      html += `<div class="notice notice-warning">
+        <i class="ti ti-alert-triangle" aria-hidden="true" style="flex-shrink:0;margin-top:1px"></i>
+        <span><strong>${f.id} (${f.marca}):</strong> Margen real <strong>${mr!==null?(mr*100).toFixed(1)+"%":"—"}</strong> — esperado <strong>${MARGENES_LABEL[f.marca]||"15–20%"}</strong>. Revisar factura cliente.</span>
+      </div>`;
+    });
+    desfasads.forEach(f=>{
+      const d = desfase(f);
+      html += `<div class="notice notice-warning">
+        <i class="ti ti-clock" aria-hidden="true" style="flex-shrink:0;margin-top:1px"></i>
+        <span><strong>${f.id} (${f.marca}):</strong> Posible impacto en P&L por desfase contable — <strong>${d} días</strong> entre cierre de período y recepción de factura.</span>
+      </div>`;
+    });
+  } else if(total > 0){
+    html = `<div class="notice notice-success">
+      <i class="ti ti-circle-check" aria-hidden="true" style="flex-shrink:0"></i>
+      <span>Sin alertas activas. Todas las facturas revisadas están dentro de parámetros.</span>
+    </div>`;
+  }
+  document.getElementById("alertas-panel").innerHTML = html;
+}
+
+/* ── Tabla ── */
+function renderTabla(){
+  const buscar  = (document.getElementById("filtro-buscar").value||"").toLowerCase();
+  const estado  = document.getElementById("filtro-estado").value;
+  const marca   = document.getElementById("filtro-marca").value;
+  const datos   = facturas.filter(f=>{
+    if(estado && calcStatus(f)!==estado) return false;
+    if(marca  && f.marca!==marca)        return false;
+    if(buscar && !`${f.id} ${f.marca} ${f.servicio}`.toLowerCase().includes(buscar)) return false;
+    return true;
+  });
+  const tbody = document.getElementById("tbody");
+  document.getElementById("sin-datos").style.display = datos.length ? "none" : "block";
+  tbody.innerHTML = datos.map(f=>{
+    const d = desfase(f);
+    const mr = margenReal(f);
+    return `<tr>
+      <td style="font-family:var(--font-mono);font-size:12px">${f.id}</td>
+      <td>${f.marca}</td>
+      <td>${f.periodo||"—"}</td>
+      <td style="font-size:12px;color:var(--text-secondary)">${f.servicio||"—"}</td>
+      <td style="text-align:right">S/ ${fmt(f.costo)}</td>
+      <td style="text-align:right">${mr!==null?(mr*100).toFixed(1)+"%":"—"}</td>
+      <td style="font-size:12px">${fcEsperada(f)}</td>
+      <td style="text-align:right">${f.clienteReal?"S/ "+fmt(f.clienteReal):"—"}</td>
+      <td style="text-align:center">${d>30?`<span style="color:var(--text-danger);font-weight:500">${d}d ⚠</span>`:(d>0?d+"d":"—")}</td>
+      <td>${badge(calcStatus(f))}</td>
+    </tr>`;
+  }).join("");
+}
+
+/* ── Formulario ── */
+function req(id, errId, msg){
+  const v = document.getElementById(id).value.trim();
+  const el = document.getElementById(errId);
+  if(!v){ el.textContent=msg; return false; }
+  el.textContent=""; return true;
+}
+
+function registrarFactura(){
+  let ok = true;
+  ok = req("f-id",       "err-id",       "Requerido") && ok;
+  ok = req("f-marca",    "err-marca",    "Seleccione marca") && ok;
+  ok = req("f-periodo",  "err-periodo",  "Requerido") && ok;
+  ok = req("f-recepcion","err-recepcion","Requerido") && ok;
+  ok = req("f-servicio", "err-servicio", "Requerido") && ok;
+  const cv = parseFloat(document.getElementById("f-costo").value);
+  if(!cv || cv <= 0){ document.getElementById("err-costo").textContent="Importe inválido"; ok=false; }
+  else document.getElementById("err-costo").textContent="";
+  if(!ok) return;
+
+  const f = {
+    id:         document.getElementById("f-id").value.trim(),
+    marca:      document.getElementById("f-marca").value,
+    periodo:    document.getElementById("f-periodo").value,
+    servicio:   document.getElementById("f-servicio").value.trim(),
+    costo:      cv,
+    clienteReal:document.getElementById("f-cliente").value ? parseFloat(document.getElementById("f-cliente").value) : null,
+    nfactura:   document.getElementById("f-nfactura").value.trim(),
+    recepcion:  document.getElementById("f-recepcion").value,
+  };
+  facturas.unshift(f); guardar(); limpiarFormulario(); switchTab("dashboard");
+}
+
+function limpiarFormulario(){
+  ["f-id","f-marca","f-periodo","f-recepcion","f-servicio","f-costo","f-cliente","f-nfactura"]
+    .forEach(id => document.getElementById(id).value="");
+  ["err-id","err-marca","err-periodo","err-recepcion","err-servicio","err-costo"]
+    .forEach(id => document.getElementById(id).textContent="");
+  document.getElementById("preview-margen").innerHTML="";
+}
+
+/* Preview margen en tiempo real */
+["f-marca","f-costo","f-cliente"].forEach(id=>{
+  document.getElementById(id).addEventListener(id==="f-marca"?"change":"input", previewMargen);
+});
+function previewMargen(){
+  const marca = document.getElementById("f-marca").value;
+  const costo = parseFloat(document.getElementById("f-costo").value);
+  const real  = parseFloat(document.getElementById("f-cliente").value);
+  const el    = document.getElementById("preview-margen");
+  if(!marca || !costo || isNaN(costo)){ el.innerHTML=""; return; }
+  const reg = MARGENES[marca]||MARGENES.Otro;
+  const espStr = reg.tipo==="fijo"
+    ? "S/ "+fmt(costo*(1+reg.valor))
+    : "S/ "+fmt(costo*(1+reg.min))+" – S/ "+fmt(costo*(1+reg.max));
+  let html = `<div class="notice notice-info">
+    <i class="ti ti-calculator" aria-hidden="true" style="flex-shrink:0"></i>
+    <div><strong>FC cliente esperada:</strong> ${espStr} &nbsp;·&nbsp; <strong>Margen:</strong> ${MARGENES_LABEL[marca]||"15–20%"}`;
+  if(real && !isNaN(real)){
+    const mr = (real-costo)/costo;
+    const ok = reg.tipo==="fijo" ? Math.abs(mr-reg.valor)<0.005 : mr>=reg.min-0.001&&mr<=reg.max+0.001;
+    html += `<br><strong>Margen real:</strong> ${(mr*100).toFixed(1)}% — <span style="color:${ok?"var(--text-success)":"var(--text-danger)"};font-weight:500">${ok?"dentro del rango ✓":"FUERA DEL RANGO — Alerta de Margen"}</span>`;
+  }
+  html += "</div></div>";
+  el.innerHTML = html;
+}
+
+/* ── Export CSV ── */
+function exportCSV(){
+  const headers = ["Factura GP","Marca","Período","Servicio","Costo GP","FC Esperada","FC Real","Margen Real %","Desfase días","Estado"];
+  const rows = facturas.map(f=>{
+    const mr = margenReal(f);
+    return [f.id, f.marca, f.periodo, `"${f.servicio}"`, f.costo, fcEsperada(f).replace("S/ ",""),
+            f.clienteReal||"", mr!==null?(mr*100).toFixed(1):"", desfase(f), calcStatus(f)];
+  });
+  const csv = [headers,...rows].map(r=>r.join(",")).join("\n");
+  const a = document.createElement("a");
+  a.href = "data:text/csv;charset=utf-8,﻿" + encodeURIComponent(csv);
+  a.download = "auditoria_facturacion_ifc.csv";
+  a.click();
+}
+
+/* ── Init ── */
+if(sessionStorage.getItem("ifc_auth")==="1") renderDashboard();
+</script>
+</body>
+</html>
