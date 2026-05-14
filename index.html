@@ -6,6 +6,7 @@
 <title>Auditoría de Facturación — Infracommerce</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <style>
   /* ── Design tokens ── */
   :root {
@@ -229,6 +230,29 @@
 
   /* ── Table ── */
   .table-wrap { overflow-x: auto; }
+
+  /* ── PDF drop zone ── */
+  .pdf-zone {
+    border: 1.5px dashed var(--border-mid);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color .15s, background .15s;
+    margin-bottom: 1.25rem;
+    background: var(--bg-secondary);
+  }
+  .pdf-zone:hover, .pdf-zone.drag-over { border-color: var(--border-strong); background: var(--bg-tertiary); }
+  .pdf-zone input[type=file] { display:none; }
+  .pdf-zone-icon { font-size: 28px; color: var(--text-tertiary); margin-bottom: 6px; }
+  .pdf-zone-label { font-size: 13px; color: var(--text-secondary); }
+  .pdf-zone-label strong { color: var(--text-primary); }
+  .pdf-parsing { display:flex; align-items:center; gap:8px; font-size:13px; color:var(--text-info); padding:.5rem 0; }
+  .pdf-raw { font-size:11px; font-family:var(--font-mono); color:var(--text-tertiary);
+    background:var(--bg-secondary); border-radius:var(--radius-md); padding:8px 10px;
+    max-height:80px; overflow-y:auto; margin-top:8px; white-space:pre-wrap; word-break:break-all; }
+  .spin { display:inline-block; animation: spin .8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
   table { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed; }
   thead th {
     font-size: 11px; font-weight: 500; color: var(--text-secondary);
@@ -350,6 +374,18 @@
 
     <!-- ── INGRESAR ── -->
     <section id="tab-ingresar" style="display:none">
+
+      <!-- PDF upload zone -->
+      <div class="pdf-zone" id="pdf-zone" onclick="document.getElementById('pdf-input').click()"
+           ondragover="event.preventDefault();this.classList.add('drag-over')"
+           ondragleave="this.classList.remove('drag-over')"
+           ondrop="event.preventDefault();this.classList.remove('drag-over');procesarPDF(event.dataTransfer.files[0])">
+        <input type="file" id="pdf-input" accept="application/pdf" onchange="procesarPDF(this.files[0])" />
+        <div class="pdf-zone-icon"><i class="ti ti-file-type-pdf" aria-hidden="true"></i></div>
+        <div class="pdf-zone-label"><strong>Subir factura PDF de Go Personal</strong><br>Arrastrá el archivo o hacé clic para seleccionar — los campos se completarán automáticamente</div>
+      </div>
+      <div id="pdf-status" style="margin-bottom:10px"></div>
+
       <div class="card">
         <p class="section-title" style="margin-bottom:14px">Registrar nueva factura Go Personal</p>
         <div class="form-grid">
@@ -733,6 +769,8 @@ function limpiarFormulario(){
   ["err-id","err-marca","err-periodo","err-recepcion","err-servicio","err-costo"]
     .forEach(id => document.getElementById(id).textContent="");
   document.getElementById("preview-margen").innerHTML="";
+  document.getElementById("pdf-status").innerHTML="";
+  document.getElementById("pdf-input").value="";
 }
 
 /* Preview margen en tiempo real */
@@ -759,6 +797,129 @@ function previewMargen(){
   }
   html += "</div></div>";
   el.innerHTML = html;
+}
+
+/* ══════════════════════════════════════
+   PDF — Extracción y autocompletado
+   ══════════════════════════════════════ */
+pdfjsLib.GlobalWorkerOptions.workerSrc =
+  "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+
+async function procesarPDF(file) {
+  if (!file || file.type !== "application/pdf") return;
+  const statusEl = document.getElementById("pdf-status");
+  statusEl.innerHTML = `<div class="pdf-parsing"><i class="ti ti-loader spin" aria-hidden="true"></i> Leyendo PDF…</div>`;
+
+  try {
+    const arrayBuffer = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    let texto = "";
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const page = await pdf.getPage(i);
+      const content = await page.getTextContent();
+      texto += content.items.map(it => it.str).join(" ") + "\n";
+    }
+    const datos = parsearFacturaPDF(texto);
+    autocompletar(datos);
+
+    const campos = Object.values(datos).filter(v => v).length;
+    const total = 6;
+    statusEl.innerHTML = `
+      <div class="notice notice-success" style="margin-bottom:0">
+        <i class="ti ti-circle-check" aria-hidden="true" style="flex-shrink:0"></i>
+        <div>
+          <strong>PDF leído: ${file.name}</strong> — ${campos} de ${total} campos detectados. Revisá y completá los que falten.
+          <details style="margin-top:4px">
+            <summary style="cursor:pointer;font-size:11px;color:var(--text-tertiary)">Ver texto extraído</summary>
+            <div class="pdf-raw">${texto.substring(0,800)}${texto.length>800?"…":""}</div>
+          </details>
+        </div>
+      </div>`;
+    // reset file input
+    document.getElementById("pdf-input").value = "";
+  } catch(e) {
+    statusEl.innerHTML = `<div class="notice notice-warning"><i class="ti ti-alert-triangle" aria-hidden="true"></i><span>No se pudo leer el PDF: ${e.message}. Completá los campos manualmente.</span></div>`;
+  }
+}
+
+function parsearFacturaPDF(texto) {
+  const t = texto.replace(/\s+/g, " ");
+  const datos = { id: null, marca: null, periodo: null, recepcion: null, servicio: null, costo: null };
+
+  // ── N° Factura (patrones comunes en facturas peruanas) ──
+  const rxId = [
+    /(?:N[°ú]|Nro\.?|Número|Serie)[^:]*[:.\s]+([A-Z]{0,4}[-\s]?\d{3,}[-\s]?\d{0,8})/i,
+    /([A-Z]{1,4}[-]?\d{3,}[-]?\d{3,})/,
+    /Factura\s+([A-Z0-9-]{5,20})/i,
+  ];
+  for (const rx of rxId) {
+    const m = t.match(rx);
+    if (m) { datos.id = m[1].trim().replace(/\s+/g, "-"); break; }
+  }
+
+  // ── Marca / Cliente ──
+  const marcas = ["NGR", "Hiraoka", "Tailoy", "Softys"];
+  for (const marca of marcas) {
+    if (t.toLowerCase().includes(marca.toLowerCase())) { datos.marca = marca; break; }
+  }
+
+  // ── Fechas ──
+  // Buscar fecha de emisión / período (dd/mm/yyyy o dd-mm-yyyy)
+  const rxFechas = /(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/g;
+  const fechas = [];
+  let fm;
+  while ((fm = rxFechas.exec(t)) !== null) {
+    const d = parseInt(fm[1]), mo = parseInt(fm[2]), y = parseInt(fm[3]);
+    if (mo >= 1 && mo <= 12 && d >= 1 && d <= 31 && y >= 2020 && y <= 2030)
+      fechas.push({ iso: `${y}-${String(mo).padStart(2,"0")}-${String(d).padStart(2,"0")}`, mes: `${y}-${String(mo).padStart(2,"0")}` });
+  }
+  if (fechas.length > 0) {
+    datos.recepcion = fechas[0].iso;
+    datos.periodo   = fechas[0].mes;
+  }
+  // Si hay dos fechas distintas, la más reciente es recepción
+  if (fechas.length > 1) {
+    fechas.sort((a, b) => a.iso.localeCompare(b.iso));
+    datos.periodo   = fechas[0].mes;
+    datos.recepcion = fechas[fechas.length - 1].iso;
+  }
+
+  // ── Importe / Monto total ──
+  const rxMonto = [
+    /(?:TOTAL|Importe Total|Monto Total|Total a Pagar|IMPORTE)[^\d]*S\/\.?\s*([\d,]+\.?\d*)/i,
+    /(?:TOTAL|IMPORTE)\s+([\d,]+\.\d{2})/i,
+    /S\/\.?\s*([\d,]{4,}\.?\d*)/,
+  ];
+  for (const rx of rxMonto) {
+    const m = t.match(rx);
+    if (m) {
+      const n = parseFloat(m[1].replace(/,/g, ""));
+      if (!isNaN(n) && n > 0) { datos.costo = n; break; }
+    }
+  }
+
+  // ── Descripción del servicio ──
+  const rxServ = [
+    /(?:Descripci[oó]n|Detalle|Concepto|Servicio)[^:]*:\s*([^\n\r.]{10,80})/i,
+    /(?:por concepto de|servicios de)\s+([^.\n]{10,80})/i,
+  ];
+  for (const rx of rxServ) {
+    const m = t.match(rx);
+    if (m) { datos.servicio = m[1].trim().substring(0, 120); break; }
+  }
+
+  return datos;
+}
+
+function autocompletar(datos) {
+  if (datos.id)       { document.getElementById("f-id").value = datos.id; }
+  if (datos.marca)    { document.getElementById("f-marca").value = datos.marca; }
+  if (datos.periodo)  { document.getElementById("f-periodo").value = datos.periodo; }
+  if (datos.recepcion){ document.getElementById("f-recepcion").value = datos.recepcion; }
+  if (datos.servicio) { document.getElementById("f-servicio").value = datos.servicio; }
+  if (datos.costo)    { document.getElementById("f-costo").value = datos.costo.toFixed(2); }
+  // Disparar preview de margen si hay marca y costo
+  if (datos.marca || datos.costo) previewMargen();
 }
 
 /* ── Export CSV ── */
