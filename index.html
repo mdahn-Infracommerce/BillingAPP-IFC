@@ -5,302 +5,165 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Auditoría de Facturación — Infracommerce</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" />
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <style>
-  /* ── Design tokens ── */
-  :root {
-    --bg-primary:   #ffffff;
-    --bg-secondary: #f5f5f0;
-    --bg-tertiary:  #eeeee8;
-    --bg-info:      #e6f1fb;
-    --bg-success:   #eaf3de;
-    --bg-warning:   #faeeda;
-    --bg-danger:    #fcebeb;
-    --text-primary:   #1a1a18;
-    --text-secondary: #5f5e5a;
-    --text-tertiary:  #888780;
-    --text-info:    #0c447c;
-    --text-success: #27500a;
-    --text-warning: #633806;
-    --text-danger:  #791f1f;
-    --border-subtle:  rgba(0,0,0,.13);
-    --border-mid:     rgba(0,0,0,.25);
-    --border-strong:  rgba(0,0,0,.38);
-    --border-info:    #b5d4f4;
-    --border-warning: #fac775;
-    --radius-md: 8px;
-    --radius-lg: 12px;
-    --radius-xl: 16px;
-    --font-sans: system-ui, -apple-system, "Segoe UI", sans-serif;
-    --font-mono: ui-monospace, "Cascadia Code", monospace;
+:root {
+  --bg-primary:#ffffff; --bg-secondary:#f5f5f0; --bg-tertiary:#eeeee8;
+  --bg-info:#e6f1fb; --bg-success:#eaf3de; --bg-warning:#faeeda; --bg-danger:#fcebeb;
+  --text-primary:#1a1a18; --text-secondary:#5f5e5a; --text-tertiary:#888780;
+  --text-info:#0c447c; --text-success:#27500a; --text-warning:#633806; --text-danger:#791f1f;
+  --border-subtle:rgba(0,0,0,.13); --border-mid:rgba(0,0,0,.25); --border-strong:rgba(0,0,0,.38);
+  --border-info:#b5d4f4; --border-warning:#fac775; --border-success:#c0dd97; --border-danger:#f7c1c1;
+  --radius-md:8px; --radius-lg:12px; --radius-xl:16px;
+  --font-sans:system-ui,-apple-system,"Segoe UI",sans-serif;
+  --font-mono:ui-monospace,"Cascadia Code",monospace;
+}
+@media(prefers-color-scheme:dark){
+  :root{
+    --bg-primary:#1e1e1c; --bg-secondary:#2a2a27; --bg-tertiary:#141412;
+    --bg-info:#0c2a45; --bg-success:#172808; --bg-warning:#2e1c06; --bg-danger:#2e0e0e;
+    --text-primary:#f0efea; --text-secondary:#b4b2a9; --text-tertiary:#888780;
+    --text-info:#85b7eb; --text-success:#97c459; --text-warning:#ef9f27; --text-danger:#f09595;
+    --border-subtle:rgba(255,255,255,.12); --border-mid:rgba(255,255,255,.22); --border-strong:rgba(255,255,255,.35);
+    --border-info:#185fa5; --border-warning:#854f0b; --border-success:#3b6d11; --border-danger:#a32d2d;
   }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --bg-primary:   #1e1e1c;
-      --bg-secondary: #2a2a27;
-      --bg-tertiary:  #141412;
-      --bg-info:      #0c2a45;
-      --bg-success:   #172808;
-      --bg-warning:   #2e1c06;
-      --bg-danger:    #2e0e0e;
-      --text-primary:   #f0efea;
-      --text-secondary: #b4b2a9;
-      --text-tertiary:  #888780;
-      --text-info:    #85b7eb;
-      --text-success: #97c459;
-      --text-warning: #ef9f27;
-      --text-danger:  #f09595;
-      --border-subtle:  rgba(255,255,255,.12);
-      --border-mid:     rgba(255,255,255,.22);
-      --border-strong:  rgba(255,255,255,.35);
-      --border-info:    #185fa5;
-      --border-warning: #854f0b;
-    }
-  }
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:var(--font-sans);font-size:15px;line-height:1.6;background:var(--bg-tertiary);color:var(--text-primary)}
 
-  /* ── Reset ── */
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body { height: 100%; }
-  body {
-    font-family: var(--font-sans);
-    font-size: 15px;
-    line-height: 1.6;
-    background: var(--bg-tertiary);
-    color: var(--text-primary);
-  }
+/* ── Login ── */
+#login-screen{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:var(--bg-tertiary);z-index:100}
+.login-card{background:var(--bg-primary);border:0.5px solid var(--border-subtle);border-radius:var(--radius-xl);padding:2rem 2.25rem;width:100%;max-width:360px}
+.login-logo{display:flex;align-items:center;gap:10px;margin-bottom:1.75rem}
+.login-logo-icon{width:38px;height:38px;border-radius:var(--radius-md);background:var(--bg-info);color:var(--text-info);display:flex;align-items:center;justify-content:center;font-size:20px}
+.login-logo-text{font-size:15px;font-weight:500} .login-logo-sub{font-size:12px;color:var(--text-secondary)}
+.login-card h1{font-size:18px;font-weight:500;margin-bottom:.25rem}
+.login-card p{font-size:13px;color:var(--text-secondary);margin-bottom:1.5rem}
+.field+.field{margin-top:10px} .field label{display:block;font-size:12px;color:var(--text-secondary);margin-bottom:4px}
+.field input{width:100%;padding:8px 10px;font-size:14px;border:0.5px solid var(--border-mid);border-radius:var(--radius-md);background:var(--bg-primary);color:var(--text-primary);font-family:var(--font-sans)}
+.field input:focus{outline:none;border-color:var(--border-strong);box-shadow:0 0 0 3px rgba(100,120,200,.12)}
+#login-error{font-size:12px;color:var(--text-danger);margin-top:8px;min-height:16px}
+.btn-primary{width:100%;margin-top:1.25rem;padding:9px;font-size:14px;font-weight:500;cursor:pointer;border:none;border-radius:var(--radius-md);background:var(--text-primary);color:var(--bg-primary);font-family:var(--font-sans)}
+.btn-primary:hover{opacity:.85} .btn-primary:active{transform:scale(.98)}
 
-  /* ── Login screen ── */
-  #login-screen {
-    position: fixed; inset: 0;
-    display: flex; align-items: center; justify-content: center;
-    background: var(--bg-tertiary);
-    z-index: 100;
-  }
-  .login-card {
-    background: var(--bg-primary);
-    border: 0.5px solid var(--border-subtle);
-    border-radius: var(--radius-xl);
-    padding: 2rem 2.25rem;
-    width: 100%; max-width: 360px;
-    box-shadow: 0 4px 32px rgba(0,0,0,.08);
-  }
-  .login-logo {
-    display: flex; align-items: center; gap: 10px;
-    margin-bottom: 1.75rem;
-  }
-  .login-logo-icon {
-    width: 38px; height: 38px; border-radius: var(--radius-md);
-    background: var(--bg-info); color: var(--text-info);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 20px;
-  }
-  .login-logo-text { font-size: 15px; font-weight: 500; color: var(--text-primary); }
-  .login-logo-sub  { font-size: 12px; color: var(--text-secondary); }
-  .login-card h1   { font-size: 18px; font-weight: 500; margin-bottom: .25rem; }
-  .login-card p    { font-size: 13px; color: var(--text-secondary); margin-bottom: 1.5rem; }
-  .field + .field  { margin-top: 10px; }
-  .field label     { display: block; font-size: 12px; color: var(--text-secondary); margin-bottom: 4px; }
-  .field input {
-    width: 100%; padding: 8px 10px; font-size: 14px;
-    border: 0.5px solid var(--border-mid);
-    border-radius: var(--radius-md);
-    background: var(--bg-primary); color: var(--text-primary);
-    font-family: var(--font-sans);
-  }
-  .field input:focus { outline: none; border-color: var(--border-strong); box-shadow: 0 0 0 3px rgba(100,120,200,.12); }
-  #login-error { font-size: 12px; color: var(--text-danger); margin-top: 8px; min-height: 16px; }
-  .btn-primary {
-    width: 100%; margin-top: 1.25rem; padding: 9px;
-    font-size: 14px; font-weight: 500; cursor: pointer;
-    border: none; border-radius: var(--radius-md);
-    background: var(--text-primary); color: var(--bg-primary);
-    font-family: var(--font-sans); transition: opacity .15s;
-  }
-  .btn-primary:hover { opacity: .85; }
-  .btn-primary:active { transform: scale(.98); }
+/* ── App layout ── */
+#app{display:none;min-height:100vh}
+.topbar{position:sticky;top:0;z-index:10;background:var(--bg-primary);border-bottom:0.5px solid var(--border-subtle);padding:0 1.5rem;display:flex;align-items:center;justify-content:space-between;height:52px}
+.topbar-left{display:flex;align-items:center;gap:10px}
+.topbar-icon{width:30px;height:30px;border-radius:var(--radius-md);background:var(--bg-info);color:var(--text-info);display:flex;align-items:center;justify-content:center;font-size:16px}
+.topbar-title{font-size:14px;font-weight:500} .topbar-sub{font-size:11px;color:var(--text-secondary)}
+.topbar-right{display:flex;align-items:center;gap:8px}
+.btn-ghost{display:inline-flex;align-items:center;gap:5px;padding:5px 10px;font-size:12px;font-weight:500;border:0.5px solid var(--border-mid);border-radius:var(--radius-md);background:transparent;color:var(--text-primary);cursor:pointer;font-family:var(--font-sans)}
+.btn-ghost:hover{background:var(--bg-secondary)} .btn-ghost:active{transform:scale(.98)}
 
-  /* ── App layout ── */
-  #app { display: none; min-height: 100vh; }
-  .topbar {
-    position: sticky; top: 0; z-index: 10;
-    background: var(--bg-primary);
-    border-bottom: 0.5px solid var(--border-subtle);
-    padding: 0 1.5rem;
-    display: flex; align-items: center; justify-content: space-between;
-    height: 52px;
-  }
-  .topbar-left { display: flex; align-items: center; gap: 10px; }
-  .topbar-icon {
-    width: 30px; height: 30px; border-radius: var(--radius-md);
-    background: var(--bg-info); color: var(--text-info);
-    display: flex; align-items: center; justify-content: center; font-size: 16px;
-  }
-  .topbar-title { font-size: 14px; font-weight: 500; }
-  .topbar-sub   { font-size: 11px; color: var(--text-secondary); }
-  .topbar-right { display: flex; align-items: center; gap: 8px; }
-  .btn-ghost {
-    display: inline-flex; align-items: center; gap: 5px;
-    padding: 5px 10px; font-size: 12px; font-weight: 500;
-    border: 0.5px solid var(--border-mid); border-radius: var(--radius-md);
-    background: transparent; color: var(--text-primary); cursor: pointer;
-    font-family: var(--font-sans);
-  }
-  .btn-ghost:hover { background: var(--bg-secondary); }
-  .btn-ghost:active { transform: scale(.98); }
+/* ── Tabs ── */
+.tab-bar-wrap{padding:1rem 1.5rem 0}
+.tab-bar{display:flex;gap:2px;background:var(--bg-secondary);padding:3px;border-radius:var(--radius-md);width:fit-content}
+.tab{padding:6px 14px;font-size:13px;font-weight:500;border-radius:var(--radius-md);border:none;background:transparent;color:var(--text-secondary);cursor:pointer;font-family:var(--font-sans);display:flex;align-items:center;gap:5px}
+.tab.active{background:var(--bg-primary);color:var(--text-primary);border:0.5px solid var(--border-subtle)}
+.tab:not(.active):hover{background:var(--bg-tertiary)}
+.content{padding:1.25rem 1.5rem 2.5rem}
 
-  /* ── Tabs ── */
-  .tab-bar-wrap { padding: 1rem 1.5rem 0; }
-  .tab-bar {
-    display: flex; gap: 2px;
-    background: var(--bg-secondary);
-    padding: 3px; border-radius: var(--radius-md);
-    width: fit-content;
-  }
-  .tab {
-    padding: 6px 14px; font-size: 13px; font-weight: 500;
-    border-radius: var(--radius-md); border: none;
-    background: transparent; color: var(--text-secondary);
-    cursor: pointer; font-family: var(--font-sans);
-    display: flex; align-items: center; gap: 5px;
-  }
-  .tab.active {
-    background: var(--bg-primary); color: var(--text-primary);
-    border: 0.5px solid var(--border-subtle);
-  }
-  .tab:not(.active):hover { background: var(--bg-tertiary); }
+/* ── Metric cards ── */
+.metrics-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:1.25rem}
+.metric{background:var(--bg-secondary);border-radius:var(--radius-md);padding:.875rem 1rem}
+.metric-label{font-size:11px;color:var(--text-secondary);margin-bottom:4px}
+.metric-val{font-size:22px;font-weight:500} .metric-sub{font-size:11px;color:var(--text-tertiary);margin-top:2px}
 
-  /* ── Content area ── */
-  .content { padding: 1.25rem 1.5rem 2.5rem; }
+/* ── Cards ── */
+.card{background:var(--bg-primary);border:0.5px solid var(--border-subtle);border-radius:var(--radius-lg);padding:1rem 1.25rem;margin-bottom:1rem}
+.section-title{font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.06em;color:var(--text-secondary);margin-bottom:10px}
 
-  /* ── Metric cards ── */
-  .metrics-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-    gap: 10px; margin-bottom: 1.25rem;
-  }
-  .metric {
-    background: var(--bg-secondary);
-    border-radius: var(--radius-md);
-    padding: .875rem 1rem;
-  }
-  .metric-label { font-size: 11px; color: var(--text-secondary); margin-bottom: 4px; }
-  .metric-val   { font-size: 22px; font-weight: 500; }
-  .metric-sub   { font-size: 11px; color: var(--text-tertiary); margin-top: 2px; }
+/* ── Badges ── */
+.badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:500;padding:3px 8px;border-radius:var(--radius-md)}
+.badge-ok{background:#eaf3de;color:#27500a} .badge-alert{background:#faeeda;color:#633806}
+.badge-error{background:#fcebeb;color:#791f1f} .badge-pending{background:#f1efe8;color:#444441}
+.badge-info{background:#e6f1fb;color:#0c447c}
+@media(prefers-color-scheme:dark){
+  .badge-ok{background:#172808;color:#97c459} .badge-alert{background:#2e1c06;color:#ef9f27}
+  .badge-error{background:#2e0e0e;color:#f09595} .badge-pending{background:#2a2a27;color:#b4b2a9}
+  .badge-info{background:#0c2a45;color:#85b7eb}
+}
 
-  /* ── Cards ── */
-  .card {
-    background: var(--bg-primary);
-    border: 0.5px solid var(--border-subtle);
-    border-radius: var(--radius-lg);
-    padding: 1rem 1.25rem;
-    margin-bottom: 1rem;
-  }
-  .section-title {
-    font-size: 11px; font-weight: 500; text-transform: uppercase;
-    letter-spacing: .06em; color: var(--text-secondary); margin-bottom: 10px;
-  }
+/* ── Notices ── */
+.notice{padding:10px 14px;border-radius:var(--radius-md);font-size:12px;display:flex;align-items:flex-start;gap:8px;margin-bottom:8px}
+.notice-info{background:var(--bg-info);border:0.5px solid var(--border-info);color:var(--text-info)}
+.notice-warning{background:var(--bg-warning);border:0.5px solid var(--border-warning);color:var(--text-warning)}
+.notice-success{background:var(--bg-success);border:0.5px solid var(--border-success);color:var(--text-success)}
+.notice-danger{background:var(--bg-danger);border:0.5px solid var(--border-danger);color:var(--text-danger)}
 
-  /* ── Badges ── */
-  .badge {
-    display: inline-flex; align-items: center; gap: 4px;
-    font-size: 11px; font-weight: 500;
-    padding: 3px 8px; border-radius: var(--radius-md);
-  }
-  .badge-ok      { background: #eaf3de; color: #27500a; }
-  .badge-alert   { background: #faeeda; color: #633806; }
-  .badge-error   { background: #fcebeb; color: #791f1f; }
-  .badge-pending { background: #f1efe8; color: #444441; }
-  @media (prefers-color-scheme: dark) {
-    .badge-ok      { background: #172808; color: #97c459; }
-    .badge-alert   { background: #2e1c06; color: #ef9f27; }
-    .badge-error   { background: #2e0e0e; color: #f09595; }
-    .badge-pending { background: #2a2a27; color: #b4b2a9; }
-  }
+/* ── Month navigator ── */
+.month-nav{display:flex;align-items:center;gap:12px;margin-bottom:1.25rem}
+.month-nav-btn{width:32px;height:32px;border-radius:var(--radius-md);border:0.5px solid var(--border-mid);background:var(--bg-primary);color:var(--text-primary);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;font-family:var(--font-sans)}
+.month-nav-btn:hover{background:var(--bg-secondary)} .month-nav-btn:active{transform:scale(.97)}
+.month-label{font-size:18px;font-weight:500;min-width:160px;text-align:center}
 
-  /* ── Notices ── */
-  .notice {
-    padding: 10px 14px; border-radius: var(--radius-md);
-    font-size: 12px; display: flex; align-items: flex-start; gap: 8px;
-    margin-bottom: 8px;
-  }
-  .notice-info    { background: var(--bg-info);    border: 0.5px solid var(--border-info);    color: var(--text-info); }
-  .notice-warning { background: var(--bg-warning); border: 0.5px solid var(--border-warning); color: var(--text-warning); }
-  .notice-success { background: var(--bg-success); border: 0.5px solid #c0dd97; color: var(--text-success); }
+/* ── Cycle table ── */
+.cycle-table{width:100%;border-collapse:collapse;font-size:13px}
+.cycle-table thead th{font-size:11px;font-weight:500;color:var(--text-secondary);text-align:left;padding:8px 12px;border-bottom:0.5px solid var(--border-subtle)}
+.cycle-table tbody td{padding:0;border-bottom:0.5px solid var(--border-subtle);vertical-align:top}
+.cycle-row{display:grid;grid-template-columns:100px 1fr 80px 1fr 120px;align-items:stretch;min-height:64px}
+.cycle-cell{padding:10px 12px;display:flex;flex-direction:column;justify-content:center}
+.cycle-divider{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:8px 0;border-left:0.5px solid var(--border-subtle);border-right:0.5px solid var(--border-subtle)}
+.cycle-brand{font-weight:500;font-size:14px}
+.cycle-sub{font-size:11px;color:var(--text-secondary);margin-top:2px}
+.cycle-num{font-family:var(--font-mono);font-size:11px;color:var(--text-tertiary)}
+.cycle-importe{font-size:13px;font-weight:500;margin-top:2px}
+.margin-pct{font-size:15px;font-weight:500}
+.margin-ok{color:var(--text-success)} .margin-warn{color:var(--text-warning)} .margin-none{color:var(--text-tertiary)}
+.cycle-action{font-size:11px;color:var(--text-info);cursor:pointer;margin-top:4px;text-decoration:underline;text-underline-offset:2px}
+.cycle-action:hover{color:var(--text-primary)}
 
-  /* ── Table ── */
-  .table-wrap { overflow-x: auto; }
+/* ── Historical matrix ── */
+.matrix-wrap{overflow-x:auto}
+.matrix-table{border-collapse:collapse;font-size:12px;white-space:nowrap}
+.matrix-table th{padding:6px 8px;font-size:11px;font-weight:500;color:var(--text-secondary);text-align:center;border-bottom:0.5px solid var(--border-subtle)}
+.matrix-table th.brand-col{text-align:left;min-width:80px}
+.matrix-table td{padding:5px 8px;text-align:center;border-bottom:0.5px solid var(--border-subtle)}
+.matrix-table td.brand-col{text-align:left;font-weight:500;color:var(--text-primary)}
+.matrix-chip{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:var(--radius-md);font-size:14px;cursor:default}
+.mc-ok{background:#eaf3de} .mc-alert{background:#faeeda} .mc-error{background:#fcebeb}
+.mc-sinfc{background:#e6f1fb} .mc-empty{background:var(--bg-secondary)}
+@media(prefers-color-scheme:dark){
+  .mc-ok{background:#172808} .mc-alert{background:#2e1c06} .mc-error{background:#2e0e0e}
+  .mc-sinfc{background:#0c2a45} .mc-empty{background:var(--bg-tertiary)}
+}
 
-  /* ── PDF drop zone ── */
-  .pdf-zone {
-    border: 1.5px dashed var(--border-mid);
-    border-radius: var(--radius-lg);
-    padding: 1.5rem;
-    text-align: center;
-    cursor: pointer;
-    transition: border-color .15s, background .15s;
-    margin-bottom: 1.25rem;
-    background: var(--bg-secondary);
-  }
-  .pdf-zone:hover, .pdf-zone.drag-over { border-color: var(--border-strong); background: var(--bg-tertiary); }
-  .pdf-zone input[type=file] { display:none; }
-  .pdf-zone-icon { font-size: 28px; color: var(--text-tertiary); margin-bottom: 6px; }
-  .pdf-zone-label { font-size: 13px; color: var(--text-secondary); }
-  .pdf-zone-label strong { color: var(--text-primary); }
-  .pdf-parsing { display:flex; align-items:center; gap:8px; font-size:13px; color:var(--text-info); padding:.5rem 0; }
-  .pdf-raw { font-size:11px; font-family:var(--font-mono); color:var(--text-tertiary);
-    background:var(--bg-secondary); border-radius:var(--radius-md); padding:8px 10px;
-    max-height:80px; overflow-y:auto; margin-top:8px; white-space:pre-wrap; word-break:break-all; }
-  .spin { display:inline-block; animation: spin .8s linear infinite; }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  table { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed; }
-  thead th {
-    font-size: 11px; font-weight: 500; color: var(--text-secondary);
-    text-align: left; padding: 8px 10px;
-    border-bottom: 0.5px solid var(--border-subtle); white-space: nowrap;
-  }
-  tbody td {
-    padding: 9px 10px; border-bottom: 0.5px solid var(--border-subtle);
-    color: var(--text-primary); vertical-align: middle; word-break: break-word;
-  }
-  tbody tr:hover { background: var(--bg-secondary); }
+/* ── Form ── */
+.form-section-header{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.form-section-label{font-size:12px;font-weight:500;text-transform:uppercase;letter-spacing:.06em;color:var(--text-secondary)}
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:10px}
+.form-group label{display:block;font-size:12px;color:var(--text-secondary);margin-bottom:4px}
+.form-group input,.form-group select{width:100%;padding:7px 10px;font-size:13px;border:0.5px solid var(--border-mid);border-radius:var(--radius-md);background:var(--bg-primary);color:var(--text-primary);font-family:var(--font-sans)}
+.form-group input:focus,.form-group select:focus{outline:none;border-color:var(--border-strong);box-shadow:0 0 0 3px rgba(100,120,200,.1)}
+.err-note{font-size:11px;color:var(--text-danger);margin-top:3px}
 
-  /* ── Form ── */
-  .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin-bottom: 10px; }
-  .form-group label { display: block; font-size: 12px; color: var(--text-secondary); margin-bottom: 4px; }
-  .form-group input, .form-group select, .form-group textarea {
-    width: 100%; padding: 7px 10px; font-size: 13px;
-    border: 0.5px solid var(--border-mid);
-    border-radius: var(--radius-md);
-    background: var(--bg-primary); color: var(--text-primary);
-    font-family: var(--font-sans);
-  }
-  .form-group input:focus, .form-group select:focus { outline: none; border-color: var(--border-strong); box-shadow: 0 0 0 3px rgba(100,120,200,.1); }
-  .err-note { font-size: 11px; color: var(--text-danger); margin-top: 3px; }
+/* ── Margin divider ── */
+.margin-divider{display:flex;align-items:center;gap:12px;margin:1.25rem 0;padding:12px 16px;border-radius:var(--radius-md);background:var(--bg-secondary)}
+.margin-divider-line{flex:1;height:0.5px;background:var(--border-subtle)}
+.margin-divider-content{text-align:center;min-width:160px}
+.margin-divider-pct{font-size:22px;font-weight:500}
+.margin-divider-label{font-size:11px;color:var(--text-secondary);margin-top:2px}
 
-  /* ── Filters ── */
-  .filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
-  .filters input, .filters select {
-    padding: 6px 10px; font-size: 13px;
-    border: 0.5px solid var(--border-mid); border-radius: var(--radius-md);
-    background: var(--bg-primary); color: var(--text-primary); font-family: var(--font-sans);
-  }
+/* ── PDF drop zone ── */
+.pdf-zone{border:1.5px dashed var(--border-mid);border-radius:var(--radius-lg);padding:1rem 1.5rem;display:flex;align-items:center;gap:12px;cursor:pointer;transition:border-color .15s,background .15s;margin-bottom:12px;background:var(--bg-secondary)}
+.pdf-zone:hover,.pdf-zone.drag-over{border-color:var(--border-strong);background:var(--bg-tertiary)}
+.pdf-zone input[type=file]{display:none}
+.pdf-zone-icon{font-size:22px;color:var(--text-tertiary);flex-shrink:0}
+.pdf-zone-text{font-size:12px;color:var(--text-secondary);line-height:1.4}
+.pdf-zone-text strong{color:var(--text-primary);display:block;margin-bottom:1px}
+.spin{display:inline-block;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
 
-  /* ── Chart legend ── */
-  .chart-legend {
-    display: flex; flex-wrap: wrap; gap: 14px;
-    font-size: 12px; color: var(--text-secondary); margin-top: 8px;
-  }
-  .chart-legend span { display: flex; align-items: center; gap: 5px; }
-  .legend-swatch { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+/* ── Filters ── */
+.filters{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.filters input,.filters select{padding:6px 10px;font-size:13px;border:0.5px solid var(--border-mid);border-radius:var(--radius-md);background:var(--bg-primary);color:var(--text-primary);font-family:var(--font-sans)}
 
-  /* ── Responsive ── */
-  @media (max-width: 600px) {
-    .topbar { padding: 0 1rem; }
-    .content { padding: 1rem; }
-    .tab-bar-wrap { padding: .75rem 1rem 0; }
-    .tab { padding: 6px 10px; font-size: 12px; }
-  }
+@media(max-width:700px){
+  .cycle-row{grid-template-columns:80px 1fr 60px 1fr 90px}
+  .topbar{padding:0 1rem} .content{padding:1rem} .tab-bar-wrap{padding:.75rem 1rem 0}
+}
 </style>
 </head>
 <body>
@@ -310,21 +173,12 @@
   <div class="login-card">
     <div class="login-logo">
       <div class="login-logo-icon"><i class="ti ti-receipt-2" aria-hidden="true"></i></div>
-      <div>
-        <div class="login-logo-text">Infracommerce</div>
-        <div class="login-logo-sub">Auditoría de Facturación</div>
-      </div>
+      <div><div class="login-logo-text">Infracommerce</div><div class="login-logo-sub">Auditoría de Facturación</div></div>
     </div>
     <h1>Iniciar sesión</h1>
     <p>Acceso restringido al equipo de facturación.</p>
-    <div class="field">
-      <label for="login-user">Usuario</label>
-      <input id="login-user" type="text" autocomplete="username" placeholder="usuario" />
-    </div>
-    <div class="field">
-      <label for="login-pass">Contraseña</label>
-      <input id="login-pass" type="password" autocomplete="current-password" placeholder="••••••••" />
-    </div>
+    <div class="field"><label>Usuario</label><input id="login-user" type="text" autocomplete="username" placeholder="usuario" /></div>
+    <div class="field"><label>Contraseña</label><input id="login-pass" type="password" autocomplete="current-password" placeholder="••••••••" /></div>
     <div id="login-error"></div>
     <button class="btn-primary" onclick="doLogin()">Ingresar</button>
   </div>
@@ -336,158 +190,197 @@
   <header class="topbar">
     <div class="topbar-left">
       <div class="topbar-icon"><i class="ti ti-receipt-2" aria-hidden="true"></i></div>
-      <div>
-        <div class="topbar-title">Auditoría de Facturación</div>
-        <div class="topbar-sub">Infracommerce · Go Personal</div>
-      </div>
+      <div><div class="topbar-title">Auditoría de Facturación</div><div class="topbar-sub">Infracommerce · Go Personal</div></div>
     </div>
     <div class="topbar-right">
-      <button class="btn-ghost" onclick="exportCSV()"><i class="ti ti-download" aria-hidden="true"></i> Exportar CSV</button>
+      <button class="btn-ghost" onclick="exportCSV()"><i class="ti ti-download" aria-hidden="true"></i> Exportar</button>
       <button class="btn-ghost" onclick="doLogout()"><i class="ti ti-logout" aria-hidden="true"></i> Salir</button>
     </div>
   </header>
 
   <div class="tab-bar-wrap">
     <nav class="tab-bar" role="tablist">
-      <button class="tab active" role="tab" onclick="switchTab('dashboard')"><i class="ti ti-chart-bar" aria-hidden="true"></i> Dashboard</button>
-      <button class="tab" role="tab" onclick="switchTab('ingresar')"><i class="ti ti-plus" aria-hidden="true"></i> Ingresar factura</button>
-      <button class="tab" role="tab" onclick="switchTab('tabla')"><i class="ti ti-table" aria-hidden="true"></i> Auditoría</button>
+      <button class="tab active" onclick="switchTab('mensual')"><i class="ti ti-calendar-month" aria-hidden="true"></i> Panel Mensual</button>
+      <button class="tab" onclick="switchTab('historico')"><i class="ti ti-layout-grid" aria-hidden="true"></i> Histórico</button>
+      <button class="tab" onclick="switchTab('registrar')"><i class="ti ti-plus" aria-hidden="true"></i> Registrar ciclo</button>
     </nav>
   </div>
 
   <main class="content">
 
-    <!-- ── DASHBOARD ── -->
-    <section id="tab-dashboard">
-      <div id="metrics-grid" class="metrics-grid"></div>
-
-      <div class="card">
-        <p class="section-title">Margen por marca — esperado vs. real</p>
-        <div style="position:relative;width:100%;height:220px">
-          <canvas id="chartBrand" role="img" aria-label="Gráfico comparativo de margen esperado vs real por marca"></canvas>
-        </div>
-        <div class="chart-legend" id="chart-legend"></div>
+    <!-- ── PANEL MENSUAL ── -->
+    <section id="tab-mensual">
+      <div class="month-nav">
+        <button class="month-nav-btn" onclick="cambiarMes(-1)" aria-label="Mes anterior"><i class="ti ti-chevron-left"></i></button>
+        <div class="month-label" id="month-label"></div>
+        <button class="month-nav-btn" onclick="cambiarMes(+1)" aria-label="Mes siguiente"><i class="ti ti-chevron-right"></i></button>
       </div>
 
-      <div id="alertas-panel"></div>
+      <div id="metrics-mensual" class="metrics-grid"></div>
+
+      <div class="card" style="padding:0;overflow:hidden">
+        <div style="overflow-x:auto">
+          <table class="cycle-table" style="min-width:680px">
+            <thead>
+              <tr>
+                <th style="width:100px">Marca</th>
+                <th>Factura GP — Go Personal</th>
+                <th style="width:80px;text-align:center">Margen</th>
+                <th>FC IFC — Emitida al cliente</th>
+                <th style="width:120px">Estado</th>
+              </tr>
+            </thead>
+            <tbody id="cycle-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="mensual-alertas"></div>
     </section>
 
-    <!-- ── INGRESAR ── -->
-    <section id="tab-ingresar" style="display:none">
-
-      <!-- PDF upload zone -->
-      <div class="pdf-zone" id="pdf-zone" onclick="document.getElementById('pdf-input').click()"
-           ondragover="event.preventDefault();this.classList.add('drag-over')"
-           ondragleave="this.classList.remove('drag-over')"
-           ondrop="event.preventDefault();this.classList.remove('drag-over');procesarPDF(event.dataTransfer.files[0])">
-        <input type="file" id="pdf-input" accept="application/pdf" onchange="procesarPDF(this.files[0])" />
-        <div class="pdf-zone-icon"><i class="ti ti-file-type-pdf" aria-hidden="true"></i></div>
-        <div class="pdf-zone-label"><strong>Subir factura PDF de Go Personal</strong><br>Arrastrá el archivo o hacé clic para seleccionar — los campos se completarán automáticamente</div>
+    <!-- ── HISTÓRICO ── -->
+    <section id="tab-historico" style="display:none">
+      <p class="section-title" style="margin-bottom:12px">Últimos 12 meses — Estado de ciclos por marca</p>
+      <div class="card" style="padding:1rem">
+        <div class="matrix-wrap" id="matrix-wrap"></div>
+        <div style="display:flex;flex-wrap:wrap;gap:12px;margin-top:14px;font-size:12px;color:var(--text-secondary)">
+          <span><span style="display:inline-block;width:16px;height:16px;border-radius:4px;background:#eaf3de;vertical-align:middle;margin-right:4px"></span>Aprobado</span>
+          <span><span style="display:inline-block;width:16px;height:16px;border-radius:4px;background:#faeeda;vertical-align:middle;margin-right:4px"></span>Alerta margen</span>
+          <span><span style="display:inline-block;width:16px;height:16px;border-radius:4px;background:#fcebeb;vertical-align:middle;margin-right:4px"></span>Discrepancia</span>
+          <span><span style="display:inline-block;width:16px;height:16px;border-radius:4px;background:#e6f1fb;vertical-align:middle;margin-right:4px"></span>Sin FC emitida</span>
+          <span><span style="display:inline-block;width:16px;height:16px;border-radius:4px;background:var(--bg-secondary);vertical-align:middle;margin-right:4px"></span>Sin registro</span>
+        </div>
       </div>
-      <div id="pdf-status" style="margin-bottom:10px"></div>
+    </section>
 
-      <div class="card">
-        <p class="section-title" style="margin-bottom:14px">Registrar nueva factura Go Personal</p>
+    <!-- ── REGISTRAR CICLO ── -->
+    <section id="tab-registrar" style="display:none">
+
+      <!-- Selector de período y marca (compartido) -->
+      <div class="card" style="margin-bottom:.75rem">
+        <p class="section-title" style="margin-bottom:10px">Período y cliente</p>
         <div class="form-grid">
           <div class="form-group">
-            <label>N° factura GP *</label>
-            <input id="f-id" placeholder="GP-2024-001" />
-            <div class="err-note" id="err-id"></div>
-          </div>
-          <div class="form-group">
-            <label>Marca / Cliente *</label>
-            <select id="f-marca">
-              <option value="">— seleccionar —</option>
-              <option>NGR</option><option>Hiraoka</option>
-              <option>Tailoy</option><option>Softys</option><option>Otro</option>
-            </select>
-            <div class="err-note" id="err-marca"></div>
-          </div>
-          <div class="form-group">
             <label>Período de servicio *</label>
-            <input id="f-periodo" type="month" />
+            <input id="r-periodo" type="month" onchange="onPeriodoMarcaChange()" />
             <div class="err-note" id="err-periodo"></div>
           </div>
           <div class="form-group">
-            <label>Fecha recepción factura *</label>
-            <input id="f-recepcion" type="date" />
+            <label>Marca / Cliente *</label>
+            <select id="r-marca" onchange="onPeriodoMarcaChange()">
+              <option value="">— seleccionar —</option>
+              <option>NGR</option><option>Hiraoka</option><option>Tailoy</option><option>Softys</option><option>Otro</option>
+            </select>
+            <div class="err-note" id="err-marca"></div>
+          </div>
+        </div>
+        <div id="ciclo-existente-aviso"></div>
+      </div>
+
+      <!-- Sección A — Factura GP -->
+      <div class="card" style="border-left:3px solid var(--border-info)">
+        <div class="form-section-header">
+          <i class="ti ti-file-invoice" style="color:var(--text-info);font-size:18px" aria-hidden="true"></i>
+          <span class="form-section-label">A — Factura Go Personal (entrada)</span>
+        </div>
+
+        <div class="pdf-zone" id="pdf-zone-a"
+             onclick="document.getElementById('pdf-input-a').click()"
+             ondragover="event.preventDefault();this.classList.add('drag-over')"
+             ondragleave="this.classList.remove('drag-over')"
+             ondrop="event.preventDefault();this.classList.remove('drag-over');procesarPDF(event.dataTransfer.files[0],'a')">
+          <input type="file" id="pdf-input-a" accept="application/pdf" onchange="procesarPDF(this.files[0],'a')" />
+          <div class="pdf-zone-icon"><i class="ti ti-file-type-pdf" aria-hidden="true"></i></div>
+          <div class="pdf-zone-text"><strong>Subir factura GP (PDF)</strong>Los campos se completarán automáticamente</div>
+        </div>
+        <div id="pdf-status-a" style="margin-bottom:8px"></div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label>N° factura GP *</label>
+            <input id="r-id" placeholder="GP-2026-001" />
+            <div class="err-note" id="err-id"></div>
+          </div>
+          <div class="form-group">
+            <label>Fecha recepción *</label>
+            <input id="r-recepcion" type="date" />
             <div class="err-note" id="err-recepcion"></div>
           </div>
         </div>
         <div class="form-grid">
           <div class="form-group" style="grid-column:1/-1">
-            <label>Detalle de servicio *</label>
-            <input id="f-servicio" placeholder="Ej: Horas personal almacén — Abril 2024" />
+            <label>Detalle del servicio (GP) *</label>
+            <input id="r-servicio" placeholder="Ej: Horas personal picking — Marzo 2026" />
             <div class="err-note" id="err-servicio"></div>
           </div>
         </div>
         <div class="form-grid">
           <div class="form-group">
-            <label>Costo GP (S/) *</label>
-            <input id="f-costo" type="number" min="0" step="0.01" placeholder="0.00" />
+            <label>Importe GP — Costo (S/) *</label>
+            <input id="r-costo" type="number" min="0" step="0.01" placeholder="0.00" oninput="calcMargenPreview()" />
             <div class="err-note" id="err-costo"></div>
           </div>
-          <div class="form-group">
-            <label>Importe factura cliente (S/)</label>
-            <input id="f-cliente" type="number" min="0" step="0.01" placeholder="0.00 (opcional)" />
-          </div>
-          <div class="form-group">
-            <label>N° factura cliente</label>
-            <input id="f-nfactura" placeholder="FC-2024-..." />
-          </div>
-        </div>
-
-        <div id="preview-margen" style="margin-bottom:12px"></div>
-
-        <div style="display:flex;gap:8px;flex-wrap:wrap">
-          <button class="btn-ghost" style="background:var(--bg-info);border-color:var(--border-info);color:var(--text-info)" onclick="registrarFactura()">
-            <i class="ti ti-check" aria-hidden="true"></i> Registrar factura
-          </button>
-          <button class="btn-ghost" onclick="limpiarFormulario()">
-            <i class="ti ti-eraser" aria-hidden="true"></i> Limpiar
-          </button>
         </div>
       </div>
-    </section>
 
-    <!-- ── TABLA ── -->
-    <section id="tab-tabla" style="display:none">
-      <div class="filters">
-        <input id="filtro-buscar" placeholder="Buscar factura, marca…" style="min-width:180px" oninput="renderTabla()" />
-        <select id="filtro-estado" onchange="renderTabla()">
-          <option value="">Todos los estados</option>
-          <option>Aprobado</option><option>Alerta de Margen</option>
-          <option>Discrepancia</option><option>Pendiente</option>
-        </select>
-        <select id="filtro-marca" onchange="renderTabla()">
-          <option value="">Todas las marcas</option>
-          <option>NGR</option><option>Hiraoka</option>
-          <option>Tailoy</option><option>Softys</option>
-        </select>
-      </div>
-      <div class="card" style="padding:0;overflow:hidden">
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th style="width:100px">Factura GP</th>
-                <th style="width:80px">Marca</th>
-                <th style="width:85px">Período</th>
-                <th style="width:115px">Servicio</th>
-                <th style="width:105px;text-align:right">Costo GP (S/)</th>
-                <th style="width:75px;text-align:right">Margen</th>
-                <th style="width:140px">FC cliente esperada</th>
-                <th style="width:110px;text-align:right">FC real (S/)</th>
-                <th style="width:90px;text-align:center">Desfase</th>
-                <th style="width:120px">Estado</th>
-              </tr>
-            </thead>
-            <tbody id="tbody"></tbody>
-          </table>
+      <!-- Divisor con margen en tiempo real -->
+      <div class="margin-divider" id="margin-divider">
+        <div class="margin-divider-line"></div>
+        <div class="margin-divider-content">
+          <div class="margin-divider-pct margin-none" id="margin-pct-preview">—</div>
+          <div class="margin-divider-label">Margen GP → FC IFC</div>
         </div>
-        <p id="sin-datos" style="text-align:center;color:var(--text-tertiary);font-size:13px;padding:2rem;display:none">
-          No hay facturas que coincidan con los filtros.
-        </p>
+        <div class="margin-divider-line"></div>
+      </div>
+
+      <!-- Sección B — FC IFC -->
+      <div class="card" style="border-left:3px solid var(--border-success)">
+        <div class="form-section-header">
+          <i class="ti ti-file-invoice" style="color:var(--text-success);font-size:18px" aria-hidden="true"></i>
+          <span class="form-section-label">B — FC IFC emitida al cliente (salida)</span>
+          <span style="font-size:11px;color:var(--text-tertiary);margin-left:4px">(opcional — podés completarla después)</span>
+        </div>
+
+        <div class="pdf-zone" id="pdf-zone-b"
+             onclick="document.getElementById('pdf-input-b').click()"
+             ondragover="event.preventDefault();this.classList.add('drag-over')"
+             ondragleave="this.classList.remove('drag-over')"
+             ondrop="event.preventDefault();this.classList.remove('drag-over');procesarPDF(event.dataTransfer.files[0],'b')">
+          <input type="file" id="pdf-input-b" accept="application/pdf" onchange="procesarPDF(this.files[0],'b')" />
+          <div class="pdf-zone-icon"><i class="ti ti-file-type-pdf" aria-hidden="true"></i></div>
+          <div class="pdf-zone-text"><strong>Subir FC IFC (PDF)</strong>Autocompleta N°, servicio e importe</div>
+        </div>
+        <div id="pdf-status-b" style="margin-bottom:8px"></div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label>N° factura IFC</label>
+            <input id="r-nfactura" placeholder="FC-2026-..." />
+          </div>
+          <div class="form-group">
+            <label>Fecha emisión FC</label>
+            <input id="r-fechaemision" type="date" />
+          </div>
+        </div>
+        <div class="form-grid">
+          <div class="form-group" style="grid-column:1/-1">
+            <label>Detalle del servicio (FC IFC)</label>
+            <input id="r-serviciofc" placeholder="Ej: Servicios de personal — NGR Marzo 2026" />
+          </div>
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Importe FC IFC — Factura cliente (S/)</label>
+            <input id="r-clientereal" type="number" min="0" step="0.01" placeholder="0.00" oninput="calcMargenPreview()" />
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:.5rem">
+        <button class="btn-ghost" style="background:var(--bg-info);border-color:var(--border-info);color:var(--text-info)" onclick="registrarCiclo()">
+          <i class="ti ti-check" aria-hidden="true"></i> Guardar ciclo
+        </button>
+        <button class="btn-ghost" onclick="limpiarRegistro()"><i class="ti ti-eraser" aria-hidden="true"></i> Limpiar</button>
       </div>
     </section>
 
@@ -496,449 +389,499 @@
 
 <script>
 /* ══════════════════════════════════════
-   CONFIGURACIÓN — cambiar antes de subir
+   CONFIGURACIÓN
    ══════════════════════════════════════ */
-const CREDENCIALES = {
-  usuario: "infracommerce",
-  password: "IFC2024!"
-};
+const CREDENCIALES = { usuario:"infracommerce", password:"IFC2024!" };
 
-/* ── Reglas de negocio ── */
+const MARCAS = ["NGR","Hiraoka","Tailoy","Softys"];
+
 const MARGENES = {
-  NGR:    { tipo: "fijo",  valor: 0.10 },
-  Hiraoka:{ tipo: "fijo",  valor: 0.20 },
-  Tailoy: { tipo: "rango", min: 0.15, max: 0.20 },
-  Softys: { tipo: "rango", min: 0.15, max: 0.20 },
-  Otro:   { tipo: "rango", min: 0.15, max: 0.20 },
+  NGR:    { tipo:"fijo",  valor:0.10 },
+  Hiraoka:{ tipo:"fijo",  valor:0.20 },
+  Tailoy: { tipo:"rango", min:0.15, max:0.20 },
+  Softys: { tipo:"rango", min:0.15, max:0.20 },
+  Otro:   { tipo:"rango", min:0.15, max:0.20 },
 };
 const MARGENES_LABEL = { NGR:"10%", Hiraoka:"20%", Tailoy:"15–20%", Softys:"15–20%", Otro:"15–20%" };
 
-/* ── Auth ── */
+/* ══════════════════════════════════════
+   AUTH
+   ══════════════════════════════════════ */
 function doLogin(){
-  const u = document.getElementById("login-user").value.trim();
-  const p = document.getElementById("login-pass").value;
-  if(u === CREDENCIALES.usuario && p === CREDENCIALES.password){
+  const u=document.getElementById("login-user").value.trim();
+  const p=document.getElementById("login-pass").value;
+  if(u===CREDENCIALES.usuario&&p===CREDENCIALES.password){
     sessionStorage.setItem("ifc_auth","1");
-    document.getElementById("login-screen").style.display = "none";
-    document.getElementById("app").style.display = "block";
-    renderDashboard();
-  } else {
-    document.getElementById("login-error").textContent = "Usuario o contraseña incorrectos.";
-  }
+    document.getElementById("login-screen").style.display="none";
+    document.getElementById("app").style.display="block";
+    init();
+  } else { document.getElementById("login-error").textContent="Usuario o contraseña incorrectos."; }
 }
-document.getElementById("login-pass").addEventListener("keydown", e => { if(e.key==="Enter") doLogin(); });
-document.getElementById("login-user").addEventListener("keydown", e => { if(e.key==="Enter") doLogin(); });
-
+["login-pass","login-user"].forEach(id=>{
+  document.getElementById(id).addEventListener("keydown",e=>{if(e.key==="Enter")doLogin();});
+});
 function doLogout(){
   sessionStorage.removeItem("ifc_auth");
-  document.getElementById("login-screen").style.display = "flex";
-  document.getElementById("app").style.display = "none";
-  document.getElementById("login-pass").value = "";
-  document.getElementById("login-error").textContent = "";
+  document.getElementById("login-screen").style.display="flex";
+  document.getElementById("app").style.display="none";
+  document.getElementById("login-pass").value="";
+  document.getElementById("login-error").textContent="";
 }
-
 if(sessionStorage.getItem("ifc_auth")==="1"){
-  document.getElementById("login-screen").style.display = "none";
-  document.getElementById("app").style.display = "block";
+  document.getElementById("login-screen").style.display="none";
+  document.getElementById("app").style.display="block";
 }
 
-/* ── Datos ── */
-let facturas = JSON.parse(localStorage.getItem("ifc_facturas") || "null") || demo();
+/* ══════════════════════════════════════
+   DATOS
+   ══════════════════════════════════════ */
+let facturas = JSON.parse(localStorage.getItem("ifc_facturas")||"null") || demo();
 
 function demo(){
   return [
-    {id:"GP-2024-001",marca:"NGR",    periodo:"2024-03",servicio:"Horas personal picking",   costo:10000,clienteReal:11000, nfactura:"FC-2024-041",recepcion:"2024-04-05"},
-    {id:"GP-2024-002",marca:"Hiraoka",periodo:"2024-03",servicio:"Personal logístico",        costo:8500, clienteReal:10500, nfactura:"FC-2024-042",recepcion:"2024-04-08"},
-    {id:"GP-2024-003",marca:"Tailoy", periodo:"2024-02",servicio:"Operadores almacén",        costo:5000, clienteReal:5900,  nfactura:"FC-2024-031",recepcion:"2024-04-20"},
-    {id:"GP-2024-004",marca:"Softys", periodo:"2024-03",servicio:"Supervisores turno",        costo:7200, clienteReal:8500,  nfactura:"FC-2024-043",recepcion:"2024-04-10"},
-    {id:"GP-2024-005",marca:"NGR",    periodo:"2024-04",servicio:"Horas personal packing",    costo:12000,clienteReal:13800, nfactura:"",           recepcion:"2024-05-02"},
-    {id:"GP-2024-006",marca:"Hiraoka",periodo:"2024-01",servicio:"Auxiliar inventario",       costo:4000, clienteReal:null,  nfactura:"",           recepcion:"2024-04-15"},
+    // Marzo 2026
+    {id:"GP-2026-031",marca:"NGR",    periodo:"2026-03",servicio:"Horas personal picking Marzo 2026",        costo:12000,recepcion:"2026-04-05",nfactura:"FC-2026-041",clienteReal:13200, servicioFC:"Servicios de personal — NGR Marzo 2026",     fechaEmisionFC:"2026-04-02"},
+    {id:"GP-2026-032",marca:"Hiraoka",periodo:"2026-03",servicio:"Personal logístico Marzo 2026",            costo:9500, recepcion:"2026-04-08",nfactura:"",           clienteReal:null,   servicioFC:"",                                          fechaEmisionFC:""},
+    {id:"GP-2026-033",marca:"Tailoy", periodo:"2026-03",servicio:"Operadores almacén Marzo 2026",            costo:6000, recepcion:"2026-04-10",nfactura:"FC-2026-043",clienteReal:6900,   servicioFC:"Servicios operativos — Tailoy Marzo 2026",   fechaEmisionFC:"2026-04-09"},
+    {id:"GP-2026-034",marca:"Softys", periodo:"2026-03",servicio:"Supervisores turno Marzo 2026",            costo:7500, recepcion:"2026-04-12",nfactura:"FC-2026-044",clienteReal:8700,   servicioFC:"Supervisión operativa — Softys Marzo 2026",  fechaEmisionFC:"2026-04-11"},
+    // Febrero 2026
+    {id:"GP-2026-021",marca:"NGR",    periodo:"2026-02",servicio:"Horas personal picking Febrero 2026",      costo:11500,recepcion:"2026-03-10",nfactura:"FC-2026-021",clienteReal:12650,  servicioFC:"Servicios de personal — NGR Febrero 2026",  fechaEmisionFC:"2026-03-08"},
+    {id:"GP-2026-022",marca:"Hiraoka",periodo:"2026-02",servicio:"Personal logístico Febrero 2026",          costo:9000, recepcion:"2026-03-12",nfactura:"FC-2026-022",clienteReal:11000,  servicioFC:"Servicios logísticos — Hiraoka Feb 2026",   fechaEmisionFC:"2026-03-10"},
+    {id:"GP-2026-023",marca:"Tailoy", periodo:"2026-02",servicio:"Operadores almacén Febrero 2026",          costo:5800, recepcion:"2026-03-08",nfactura:"FC-2026-023",clienteReal:6700,   servicioFC:"Servicios operativos — Tailoy Feb 2026",    fechaEmisionFC:"2026-03-07"},
+    {id:"GP-2026-024",marca:"Softys", periodo:"2026-02",servicio:"Supervisores turno Febrero 2026",          costo:7200, recepcion:"2026-03-15",nfactura:"FC-2026-024",clienteReal:8400,   servicioFC:"Supervisión operativa — Softys Feb 2026",   fechaEmisionFC:"2026-03-13"},
+    // Enero 2026
+    {id:"GP-2026-011",marca:"NGR",    periodo:"2026-01",servicio:"Horas personal picking Enero 2026",        costo:10500,recepcion:"2026-02-08",nfactura:"FC-2026-011",clienteReal:11550,  servicioFC:"Servicios de personal — NGR Enero 2026",    fechaEmisionFC:"2026-02-06"},
+    {id:"GP-2026-012",marca:"Hiraoka",periodo:"2026-01",servicio:"Personal logístico Enero 2026",            costo:8800, recepcion:"2026-02-10",nfactura:"FC-2026-012",clienteReal:10560,  servicioFC:"Servicios logísticos — Hiraoka Ene 2026",   fechaEmisionFC:"2026-02-09"},
+    {id:"GP-2026-013",marca:"Tailoy", periodo:"2026-01",servicio:"Operadores almacén Enero 2026",            costo:5500, recepcion:"2026-02-12",nfactura:"FC-2026-013",clienteReal:6325,   servicioFC:"Servicios operativos — Tailoy Ene 2026",    fechaEmisionFC:"2026-02-11"},
+    {id:"GP-2026-014",marca:"Softys", periodo:"2026-01",servicio:"Supervisores turno Enero 2026",            costo:7000, recepcion:"2026-02-14",nfactura:"",           clienteReal:null,   servicioFC:"",                                          fechaEmisionFC:""},
   ];
 }
+function guardar(){ localStorage.setItem("ifc_facturas",JSON.stringify(facturas)); }
 
-function guardar(){ localStorage.setItem("ifc_facturas", JSON.stringify(facturas)); }
-
-/* ── Lógica de negocio ── */
+/* ══════════════════════════════════════
+   LÓGICA DE NEGOCIO
+   ══════════════════════════════════════ */
 function calcStatus(f){
-  const r = parseFloat(f.clienteReal);
-  const c = parseFloat(f.costo);
-  if(!r || isNaN(r)) return "Pendiente";
-  const mr = (r - c) / c;
-  const reg = MARGENES[f.marca] || MARGENES.Otro;
-  let ok = reg.tipo === "fijo"
-    ? Math.abs(mr - reg.valor) < 0.005
-    : mr >= reg.min - 0.001 && mr <= reg.max + 0.001;
+  if(!f||!f.costo||f.costo<=0) return "Sin GP";
+  if(!f.clienteReal||f.clienteReal<=0) return "Sin FC";
+  const mr=(f.clienteReal-f.costo)/f.costo;
+  const reg=MARGENES[f.marca]||MARGENES.Otro;
+  const ok=reg.tipo==="fijo"?Math.abs(mr-reg.valor)<0.005:mr>=reg.min-0.001&&mr<=reg.max+0.001;
   if(!ok) return "Alerta de Margen";
-  if(desfase(f) > 30) return "Discrepancia";
+  if(desfase(f)>30) return "Discrepancia";
   return "Aprobado";
 }
 
 function desfase(f){
-  if(!f.periodo || !f.recepcion) return 0;
-  const fin = new Date(f.periodo + "-01");
-  fin.setMonth(fin.getMonth() + 1); fin.setDate(0);
-  return Math.max(0, Math.round((new Date(f.recepcion) - fin) / 86400000));
+  if(!f.periodo||!f.recepcion) return 0;
+  const fin=new Date(f.periodo+"-01");
+  fin.setMonth(fin.getMonth()+1); fin.setDate(0);
+  return Math.max(0,Math.round((new Date(f.recepcion)-fin)/86400000));
 }
 
 function margenReal(f){
-  const r = parseFloat(f.clienteReal), c = parseFloat(f.costo);
-  if(!r || isNaN(r)) return null;
-  return (r - c) / c;
+  if(!f||!f.clienteReal||!f.costo) return null;
+  return (f.clienteReal-f.costo)/f.costo;
 }
-
-function fcEsperada(f){
-  const c = parseFloat(f.costo);
-  const reg = MARGENES[f.marca] || MARGENES.Otro;
-  if(reg.tipo === "fijo") return "S/ " + fmt(c * (1 + reg.valor));
-  return "S/ " + fmt(c * (1 + reg.min)) + " – " + fmt(c * (1 + reg.max));
-}
-
-function fmt(n){ return Number(n).toLocaleString("es-PE",{minimumFractionDigits:2,maximumFractionDigits:2}); }
 
 function badge(s){
-  const cls = {Aprobado:"badge-ok","Alerta de Margen":"badge-alert",Discrepancia:"badge-error",Pendiente:"badge-pending"};
-  const ico = {Aprobado:"ti-check","Alerta de Margen":"ti-alert-triangle",Discrepancia:"ti-x",Pendiente:"ti-clock"};
+  const cls={Aprobado:"badge-ok","Alerta de Margen":"badge-alert",Discrepancia:"badge-error","Sin FC":"badge-info","Sin GP":"badge-pending"};
+  const ico={Aprobado:"ti-check","Alerta de Margen":"ti-alert-triangle",Discrepancia:"ti-x","Sin FC":"ti-clock","Sin GP":"ti-clock"};
   return `<span class="badge ${cls[s]||"badge-pending"}"><i class="ti ${ico[s]||"ti-help"}" aria-hidden="true"></i>${s}</span>`;
 }
 
-/* ── Tabs ── */
-function switchTab(t){
-  ["dashboard","ingresar","tabla"].forEach(id=>{
-    document.getElementById("tab-"+id).style.display = id===t?"block":"none";
-  });
-  document.querySelectorAll(".tab").forEach((b,i)=>{
-    b.classList.toggle("active",["dashboard","ingresar","tabla"][i]===t);
-  });
-  if(t==="tabla") renderTabla();
-  if(t==="dashboard") renderDashboard();
+function fmt(n,dec=2){ return Number(n).toLocaleString("es-PE",{minimumFractionDigits:dec,maximumFractionDigits:dec}); }
+
+function mesLabel(ym){
+  const [y,m]=ym.split("-");
+  const meses=["","Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+  return `${meses[parseInt(m)]} ${y}`;
 }
-
-/* ── Dashboard ── */
-function renderDashboard(){
-  const total   = facturas.length;
-  const apro    = facturas.filter(f=>calcStatus(f)==="Aprobado").length;
-  const alertM  = facturas.filter(f=>calcStatus(f)==="Alerta de Margen").length;
-  const disc    = facturas.filter(f=>calcStatus(f)==="Discrepancia").length;
-  const pend    = facturas.filter(f=>calcStatus(f)==="Pendiente").length;
-  const cTotal  = facturas.reduce((a,f)=>a+parseFloat(f.costo||0),0);
-
-  document.getElementById("metrics-grid").innerHTML = `
-    <div class="metric"><p class="metric-label">Total facturas</p><p class="metric-val">${total}</p></div>
-    <div class="metric"><p class="metric-label">Aprobadas</p><p class="metric-val" style="color:var(--text-success)">${apro}</p></div>
-    <div class="metric"><p class="metric-label">Alerta margen</p><p class="metric-val" style="color:var(--text-warning)">${alertM}</p></div>
-    <div class="metric"><p class="metric-label">Discrepancia</p><p class="metric-val" style="color:var(--text-danger)">${disc}</p></div>
-    <div class="metric"><p class="metric-label">Pendientes</p><p class="metric-val" style="color:var(--text-tertiary)">${pend}</p></div>
-    <div class="metric"><p class="metric-label">Costo total GP</p><p class="metric-val" style="font-size:16px">S/ ${fmt(cTotal)}</p></div>
-  `;
-
-  const marcas = [...new Set(facturas.map(f=>f.marca))];
-  const isDark = matchMedia("(prefers-color-scheme:dark)").matches;
-
-  const espData = marcas.map(m=>{
-    const reg = MARGENES[m]||MARGENES.Otro;
-    return reg.tipo==="fijo" ? reg.valor*100 : ((reg.min+reg.max)/2*100);
-  });
-  const realData = marcas.map(m=>{
-    const fs = facturas.filter(f=>f.marca===m && f.clienteReal && !isNaN(parseFloat(f.clienteReal)));
-    if(!fs.length) return null;
-    return parseFloat((fs.reduce((a,f)=>a+margenReal(f),0)/fs.length*100).toFixed(1));
-  });
-
-  const existing = Chart.getChart("chartBrand");
-  if(existing) existing.destroy();
-  new Chart(document.getElementById("chartBrand"),{
-    type:"bar",
-    data:{
-      labels: marcas,
-      datasets:[
-        {label:"Esperado",   data:espData,  backgroundColor:"#B5D4F4",borderColor:"#378ADD",borderWidth:1,borderRadius:4},
-        {label:"Real prom.", data:realData, backgroundColor:"#9FE1CB",borderColor:"#1D9E75",borderWidth:1,borderRadius:4}
-      ]
-    },
-    options:{
-      responsive:true, maintainAspectRatio:false,
-      plugins:{ legend:{ display:false } },
-      scales:{
-        x:{ grid:{color:isDark?"rgba(255,255,255,.07)":"rgba(0,0,0,.06)"}, ticks:{color:isDark?"#B4B2A9":"#5F5E5A",font:{size:12}} },
-        y:{ min:0, max:28, ticks:{color:isDark?"#B4B2A9":"#5F5E5A",font:{size:11},callback:v=>v+"%"}, grid:{color:isDark?"rgba(255,255,255,.07)":"rgba(0,0,0,.06)"} }
-      }
-    }
-  });
-
-  document.getElementById("chart-legend").innerHTML = `
-    <span><span class="legend-swatch" style="background:#B5D4F4"></span>Margen esperado</span>
-    <span><span class="legend-swatch" style="background:#9FE1CB"></span>Margen real promedio</span>
-  `;
-
-  const alertas   = facturas.filter(f=>calcStatus(f)==="Alerta de Margen");
-  const desfasads = facturas.filter(f=>desfase(f)>30);
-  let html = "";
-
-  if(alertas.length || desfasads.length){
-    html += `<p class="section-title">Alertas activas</p>`;
-    alertas.forEach(f=>{
-      const mr = margenReal(f);
-      html += `<div class="notice notice-warning">
-        <i class="ti ti-alert-triangle" aria-hidden="true" style="flex-shrink:0;margin-top:1px"></i>
-        <span><strong>${f.id} (${f.marca}):</strong> Margen real <strong>${mr!==null?(mr*100).toFixed(1)+"%":"—"}</strong> — esperado <strong>${MARGENES_LABEL[f.marca]||"15–20%"}</strong>. Revisar factura cliente.</span>
-      </div>`;
-    });
-    desfasads.forEach(f=>{
-      const d = desfase(f);
-      html += `<div class="notice notice-warning">
-        <i class="ti ti-clock" aria-hidden="true" style="flex-shrink:0;margin-top:1px"></i>
-        <span><strong>${f.id} (${f.marca}):</strong> Posible impacto en P&L por desfase contable — <strong>${d} días</strong> entre cierre de período y recepción de factura.</span>
-      </div>`;
-    });
-  } else if(total > 0){
-    html = `<div class="notice notice-success">
-      <i class="ti ti-circle-check" aria-hidden="true" style="flex-shrink:0"></i>
-      <span>Sin alertas activas. Todas las facturas revisadas están dentro de parámetros.</span>
-    </div>`;
-  }
-  document.getElementById("alertas-panel").innerHTML = html;
+function mesCorto(ym){
+  const [y,m]=ym.split("-");
+  const meses=["","Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
+  return `${meses[parseInt(m)]} ${y.slice(2)}`;
 }
-
-/* ── Tabla ── */
-function renderTabla(){
-  const buscar  = (document.getElementById("filtro-buscar").value||"").toLowerCase();
-  const estado  = document.getElementById("filtro-estado").value;
-  const marca   = document.getElementById("filtro-marca").value;
-  const datos   = facturas.filter(f=>{
-    if(estado && calcStatus(f)!==estado) return false;
-    if(marca  && f.marca!==marca)        return false;
-    if(buscar && !`${f.id} ${f.marca} ${f.servicio}`.toLowerCase().includes(buscar)) return false;
-    return true;
-  });
-  const tbody = document.getElementById("tbody");
-  document.getElementById("sin-datos").style.display = datos.length ? "none" : "block";
-  tbody.innerHTML = datos.map(f=>{
-    const d = desfase(f);
-    const mr = margenReal(f);
-    return `<tr>
-      <td style="font-family:var(--font-mono);font-size:12px">${f.id}</td>
-      <td>${f.marca}</td>
-      <td>${f.periodo||"—"}</td>
-      <td style="font-size:12px;color:var(--text-secondary)">${f.servicio||"—"}</td>
-      <td style="text-align:right">S/ ${fmt(f.costo)}</td>
-      <td style="text-align:right">${mr!==null?(mr*100).toFixed(1)+"%":"—"}</td>
-      <td style="font-size:12px">${fcEsperada(f)}</td>
-      <td style="text-align:right">${f.clienteReal?"S/ "+fmt(f.clienteReal):"—"}</td>
-      <td style="text-align:center">${d>30?`<span style="color:var(--text-danger);font-weight:500">${d}d ⚠</span>`:(d>0?d+"d":"—")}</td>
-      <td>${badge(calcStatus(f))}</td>
-    </tr>`;
-  }).join("");
-}
-
-/* ── Formulario ── */
-function req(id, errId, msg){
-  const v = document.getElementById(id).value.trim();
-  const el = document.getElementById(errId);
-  if(!v){ el.textContent=msg; return false; }
-  el.textContent=""; return true;
-}
-
-function registrarFactura(){
-  let ok = true;
-  ok = req("f-id",       "err-id",       "Requerido") && ok;
-  ok = req("f-marca",    "err-marca",    "Seleccione marca") && ok;
-  ok = req("f-periodo",  "err-periodo",  "Requerido") && ok;
-  ok = req("f-recepcion","err-recepcion","Requerido") && ok;
-  ok = req("f-servicio", "err-servicio", "Requerido") && ok;
-  const cv = parseFloat(document.getElementById("f-costo").value);
-  if(!cv || cv <= 0){ document.getElementById("err-costo").textContent="Importe inválido"; ok=false; }
-  else document.getElementById("err-costo").textContent="";
-  if(!ok) return;
-
-  const f = {
-    id:         document.getElementById("f-id").value.trim(),
-    marca:      document.getElementById("f-marca").value,
-    periodo:    document.getElementById("f-periodo").value,
-    servicio:   document.getElementById("f-servicio").value.trim(),
-    costo:      cv,
-    clienteReal:document.getElementById("f-cliente").value ? parseFloat(document.getElementById("f-cliente").value) : null,
-    nfactura:   document.getElementById("f-nfactura").value.trim(),
-    recepcion:  document.getElementById("f-recepcion").value,
-  };
-  facturas.unshift(f); guardar(); limpiarFormulario(); switchTab("dashboard");
-}
-
-function limpiarFormulario(){
-  ["f-id","f-marca","f-periodo","f-recepcion","f-servicio","f-costo","f-cliente","f-nfactura"]
-    .forEach(id => document.getElementById(id).value="");
-  ["err-id","err-marca","err-periodo","err-recepcion","err-servicio","err-costo"]
-    .forEach(id => document.getElementById(id).textContent="");
-  document.getElementById("preview-margen").innerHTML="";
-  document.getElementById("pdf-status").innerHTML="";
-  document.getElementById("pdf-input").value="";
-}
-
-/* Preview margen en tiempo real */
-["f-marca","f-costo","f-cliente"].forEach(id=>{
-  document.getElementById(id).addEventListener(id==="f-marca"?"change":"input", previewMargen);
-});
-function previewMargen(){
-  const marca = document.getElementById("f-marca").value;
-  const costo = parseFloat(document.getElementById("f-costo").value);
-  const real  = parseFloat(document.getElementById("f-cliente").value);
-  const el    = document.getElementById("preview-margen");
-  if(!marca || !costo || isNaN(costo)){ el.innerHTML=""; return; }
-  const reg = MARGENES[marca]||MARGENES.Otro;
-  const espStr = reg.tipo==="fijo"
-    ? "S/ "+fmt(costo*(1+reg.valor))
-    : "S/ "+fmt(costo*(1+reg.min))+" – S/ "+fmt(costo*(1+reg.max));
-  let html = `<div class="notice notice-info">
-    <i class="ti ti-calculator" aria-hidden="true" style="flex-shrink:0"></i>
-    <div><strong>FC cliente esperada:</strong> ${espStr} &nbsp;·&nbsp; <strong>Margen:</strong> ${MARGENES_LABEL[marca]||"15–20%"}`;
-  if(real && !isNaN(real)){
-    const mr = (real-costo)/costo;
-    const ok = reg.tipo==="fijo" ? Math.abs(mr-reg.valor)<0.005 : mr>=reg.min-0.001&&mr<=reg.max+0.001;
-    html += `<br><strong>Margen real:</strong> ${(mr*100).toFixed(1)}% — <span style="color:${ok?"var(--text-success)":"var(--text-danger)"};font-weight:500">${ok?"dentro del rango ✓":"FUERA DEL RANGO — Alerta de Margen"}</span>`;
-  }
-  html += "</div></div>";
-  el.innerHTML = html;
+function addMes(ym,n){
+  const [y,m]=ym.split("-").map(Number);
+  const d=new Date(y,m-1+n,1);
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;
 }
 
 /* ══════════════════════════════════════
-   PDF — Extracción y autocompletado
+   TABS & NAVEGACIÓN
    ══════════════════════════════════════ */
-pdfjsLib.GlobalWorkerOptions.workerSrc =
-  "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+let periodoActivo = "2026-03";
 
-async function procesarPDF(file) {
-  if (!file || file.type !== "application/pdf") return;
-  const statusEl = document.getElementById("pdf-status");
-  statusEl.innerHTML = `<div class="pdf-parsing"><i class="ti ti-loader spin" aria-hidden="true"></i> Leyendo PDF…</div>`;
+function switchTab(t){
+  ["mensual","historico","registrar"].forEach(id=>{
+    document.getElementById("tab-"+id).style.display=id===t?"block":"none";
+  });
+  document.querySelectorAll(".tab").forEach((b,i)=>{
+    b.classList.toggle("active",["mensual","historico","registrar"][i]===t);
+  });
+  if(t==="mensual")  renderMensual();
+  if(t==="historico") renderHistorico();
+}
 
-  try {
-    const arrayBuffer = await file.arrayBuffer();
-    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-    let texto = "";
-    for (let i = 1; i <= pdf.numPages; i++) {
-      const page = await pdf.getPage(i);
-      const content = await page.getTextContent();
-      texto += content.items.map(it => it.str).join(" ") + "\n";
+function cambiarMes(delta){
+  periodoActivo=addMes(periodoActivo,delta);
+  renderMensual();
+}
+
+/* ══════════════════════════════════════
+   PANEL MENSUAL
+   ══════════════════════════════════════ */
+function renderMensual(){
+  document.getElementById("month-label").textContent=mesLabel(periodoActivo);
+
+  const ciclos=MARCAS.map(marca=>{
+    const f=facturas.find(f=>f.marca===marca&&f.periodo===periodoActivo)||null;
+    return {marca,f,status:f?calcStatus(f):"Sin GP"};
+  });
+
+  // Métricas
+  const completos=ciclos.filter(c=>c.status==="Aprobado").length;
+  const alertas=ciclos.filter(c=>c.status==="Alerta de Margen"||c.status==="Discrepancia").length;
+  const sinFC=ciclos.filter(c=>c.status==="Sin FC").length;
+  const costoTotal=ciclos.reduce((a,c)=>a+(c.f?.costo||0),0);
+
+  document.getElementById("metrics-mensual").innerHTML=`
+    <div class="metric"><p class="metric-label">Ciclos completos</p><p class="metric-val" style="color:var(--text-success)">${completos}<span style="font-size:14px;color:var(--text-tertiary)"> / ${MARCAS.length}</span></p></div>
+    <div class="metric"><p class="metric-label">Sin FC emitida</p><p class="metric-val" style="color:var(--text-info)">${sinFC}</p></div>
+    <div class="metric"><p class="metric-label">Alertas activas</p><p class="metric-val" style="color:var(--text-warning)">${alertas}</p></div>
+    <div class="metric"><p class="metric-label">Costo total GP</p><p class="metric-val" style="font-size:16px">S/ ${fmt(costoTotal)}</p></div>
+  `;
+
+  // Tabla de ciclos
+  document.getElementById("cycle-tbody").innerHTML = ciclos.map(({marca,f,status})=>{
+    const mr=margenReal(f);
+    const reg=MARGENES[marca]||MARGENES.Otro;
+
+    // Columna GP
+    const gpHtml = f ? `
+      <div style="font-size:12px;font-family:var(--font-mono);color:var(--text-tertiary)">${f.id}</div>
+      <div style="font-size:13px;color:var(--text-secondary);margin-top:2px">${f.servicio||"—"}</div>
+      <div style="font-size:14px;font-weight:500;margin-top:4px">S/ ${fmt(f.costo)}</div>
+      ${desfase(f)>30?`<div style="font-size:11px;color:var(--text-warning);margin-top:3px"><i class="ti ti-clock" style="font-size:11px"></i> Recibida con ${desfase(f)}d de desfase</div>`:""}
+    ` : `<span style="font-size:12px;color:var(--text-tertiary)">Sin registrar</span>
+         <div class="cycle-action" onclick="irARegistrar('${marca}')">+ Registrar factura GP</div>`;
+
+    // Columna margen
+    let marginCls="margin-none", marginTxt="—";
+    if(mr!==null){
+      const ok=reg.tipo==="fijo"?Math.abs(mr-reg.valor)<0.005:mr>=reg.min-0.001&&mr<=reg.max+0.001;
+      marginCls=ok?"margin-ok":"margin-warn";
+      marginTxt=(mr*100).toFixed(1)+"%";
     }
-    const datos = parsearFacturaPDF(texto);
-    autocompletar(datos);
 
-    const campos = Object.values(datos).filter(v => v).length;
-    const total = 6;
-    statusEl.innerHTML = `
-      <div class="notice notice-success" style="margin-bottom:0">
-        <i class="ti ti-circle-check" aria-hidden="true" style="flex-shrink:0"></i>
-        <div>
-          <strong>PDF leído: ${file.name}</strong> — ${campos} de ${total} campos detectados. Revisá y completá los que falten.
-          <details style="margin-top:4px">
-            <summary style="cursor:pointer;font-size:11px;color:var(--text-tertiary)">Ver texto extraído</summary>
-            <div class="pdf-raw">${texto.substring(0,800)}${texto.length>800?"…":""}</div>
-          </details>
+    // Columna FC
+    const fcHtml = (f&&f.nfactura) ? `
+      <div style="font-size:12px;font-family:var(--font-mono);color:var(--text-tertiary)">${f.nfactura}</div>
+      <div style="font-size:13px;color:var(--text-secondary);margin-top:2px">${f.servicioFC||f.servicio||"—"}</div>
+      <div style="font-size:14px;font-weight:500;margin-top:4px">S/ ${fmt(f.clienteReal)}</div>
+      ${f.fechaEmisionFC?`<div style="font-size:11px;color:var(--text-tertiary);margin-top:3px">Emitida ${f.fechaEmisionFC}</div>`:""}
+    ` : f ? `<span style="font-size:12px;color:var(--text-tertiary)">No emitida aún</span>
+              <div class="cycle-action" onclick="irACompletarFC('${marca}','${periodoActivo}')">+ Agregar FC IFC</div>`
+           : `<span style="font-size:12px;color:var(--text-tertiary)">—</span>`;
+
+    return `<tr>
+      <td>
+        <div class="cycle-row">
+          <div class="cycle-cell">
+            <div class="cycle-brand">${marca}</div>
+            <div class="cycle-sub">${MARGENES_LABEL[marca]||"15–20%"}</div>
+          </div>
+          <div class="cycle-cell">${gpHtml}</div>
+          <div class="cycle-divider">
+            <span class="margin-pct ${marginCls}">${marginTxt}</span>
+            <span style="font-size:10px;color:var(--text-tertiary)">margen</span>
+          </div>
+          <div class="cycle-cell">${fcHtml}</div>
+          <div class="cycle-cell">${badge(status)}</div>
         </div>
+      </td>
+    </tr>`;
+  }).join("");
+
+  // Alertas del mes
+  const warnings=ciclos.filter(c=>["Alerta de Margen","Discrepancia"].includes(c.status));
+  let alertHtml="";
+  warnings.forEach(({marca,f,status})=>{
+    const mr=margenReal(f);
+    const reg=MARGENES[marca]||MARGENES.Otro;
+    const esp=reg.tipo==="fijo"?(reg.valor*100).toFixed(0)+"%":(reg.min*100).toFixed(0)+"–"+(reg.max*100).toFixed(0)+"%";
+    if(status==="Alerta de Margen")
+      alertHtml+=`<div class="notice notice-warning"><i class="ti ti-alert-triangle" aria-hidden="true" style="flex-shrink:0"></i><span><strong>${marca}:</strong> Margen real <strong>${mr!==null?(mr*100).toFixed(1)+"%":"—"}</strong> — esperado <strong>${esp}</strong>. Revisar FC emitida.</span></div>`;
+    if(status==="Discrepancia")
+      alertHtml+=`<div class="notice notice-danger"><i class="ti ti-clock" aria-hidden="true" style="flex-shrink:0"></i><span><strong>${marca}:</strong> Posible impacto en P&L — <strong>${desfase(f)} días</strong> entre cierre de período y recepción de factura GP.</span></div>`;
+  });
+  if(!alertHtml&&ciclos.every(c=>c.status==="Aprobado"))
+    alertHtml=`<div class="notice notice-success"><i class="ti ti-circle-check" aria-hidden="true" style="flex-shrink:0"></i><span>Todos los ciclos de <strong>${mesLabel(periodoActivo)}</strong> están aprobados.</span></div>`;
+  document.getElementById("mensual-alertas").innerHTML=alertHtml;
+}
+
+/* ══════════════════════════════════════
+   HISTÓRICO
+   ══════════════════════════════════════ */
+function renderHistorico(){
+  const meses=[];
+  for(let i=11;i>=0;i--) meses.push(addMes(periodoActivo,-i));
+
+  const statusIcon={
+    "Aprobado":{cls:"mc-ok",ico:"✓"},
+    "Alerta de Margen":{cls:"mc-alert",ico:"!"},
+    "Discrepancia":{cls:"mc-error",ico:"✕"},
+    "Sin FC":{cls:"mc-sinfc",ico:"○"},
+    "Sin GP":{cls:"mc-empty",ico:"·"},
+  };
+
+  const html=`<table class="matrix-table">
+    <thead><tr>
+      <th class="brand-col">Marca</th>
+      ${meses.map(m=>`<th style="min-width:52px">${mesCorto(m)}</th>`).join("")}
+    </tr></thead>
+    <tbody>
+      ${MARCAS.map(marca=>`<tr>
+        <td class="brand-col">${marca}</td>
+        ${meses.map(mes=>{
+          const f=facturas.find(f=>f.marca===marca&&f.periodo===mes);
+          const s=f?calcStatus(f):"Sin GP";
+          const si=statusIcon[s]||{cls:"mc-empty",ico:"·"};
+          const mr=margenReal(f);
+          const tooltip=f?`${s}${mr!==null?" · "+(mr*100).toFixed(1)+"%":""}`:"Sin registro";
+          const isActive=mes===periodoActivo;
+          return `<td style="${isActive?"border:1.5px solid var(--border-mid);border-radius:var(--radius-md)":""}">
+            <span class="matrix-chip ${si.cls}" title="${tooltip}" onclick="periodoActivo='${mes}';switchTab('mensual')" style="cursor:pointer">${si.ico}</span>
+          </td>`;
+        }).join("")}
+      </tr>`).join("")}
+    </tbody>
+  </table>`;
+  document.getElementById("matrix-wrap").innerHTML=html;
+}
+
+/* ══════════════════════════════════════
+   REGISTRAR CICLO
+   ══════════════════════════════════════ */
+function onPeriodoMarcaChange(){
+  const periodo=document.getElementById("r-periodo").value;
+  const marca=document.getElementById("r-marca").value;
+  if(!periodo||!marca){ document.getElementById("ciclo-existente-aviso").innerHTML=""; return; }
+  const ex=facturas.find(f=>f.marca===marca&&f.periodo===periodo);
+  if(ex){
+    document.getElementById("ciclo-existente-aviso").innerHTML=`
+      <div class="notice notice-info" style="margin-top:8px">
+        <i class="ti ti-info-circle" aria-hidden="true" style="flex-shrink:0"></i>
+        <span>Ya existe un ciclo para <strong>${marca} — ${mesLabel(periodo)}</strong>. Los campos se pre-cargan; podés editarlos y guardar para actualizar.</span>
       </div>`;
-    // reset file input
-    document.getElementById("pdf-input").value = "";
-  } catch(e) {
-    statusEl.innerHTML = `<div class="notice notice-warning"><i class="ti ti-alert-triangle" aria-hidden="true"></i><span>No se pudo leer el PDF: ${e.message}. Completá los campos manualmente.</span></div>`;
+    // Pre-cargar campos
+    document.getElementById("r-id").value         = ex.id||"";
+    document.getElementById("r-recepcion").value  = ex.recepcion||"";
+    document.getElementById("r-servicio").value   = ex.servicio||"";
+    document.getElementById("r-costo").value      = ex.costo||"";
+    document.getElementById("r-nfactura").value   = ex.nfactura||"";
+    document.getElementById("r-fechaemision").value=ex.fechaEmisionFC||"";
+    document.getElementById("r-serviciofc").value = ex.servicioFC||"";
+    document.getElementById("r-clientereal").value= ex.clienteReal||"";
+    calcMargenPreview();
+  } else {
+    document.getElementById("ciclo-existente-aviso").innerHTML="";
   }
 }
 
-function parsearFacturaPDF(texto) {
-  const t = texto.replace(/\s+/g, " ");
-  const datos = { id: null, marca: null, periodo: null, recepcion: null, servicio: null, costo: null };
+function irARegistrar(marca){
+  document.getElementById("r-marca").value=marca;
+  document.getElementById("r-periodo").value=periodoActivo;
+  onPeriodoMarcaChange();
+  switchTab("registrar");
+}
+function irACompletarFC(marca,periodo){
+  irARegistrar(marca);
+  setTimeout(()=>document.getElementById("r-nfactura").focus(),200);
+}
 
-  // ── N° Factura (patrones comunes en facturas peruanas) ──
-  const rxId = [
-    /(?:N[°ú]|Nro\.?|Número|Serie)[^:]*[:.\s]+([A-Z]{0,4}[-\s]?\d{3,}[-\s]?\d{0,8})/i,
-    /([A-Z]{1,4}[-]?\d{3,}[-]?\d{3,})/,
-    /Factura\s+([A-Z0-9-]{5,20})/i,
-  ];
-  for (const rx of rxId) {
-    const m = t.match(rx);
-    if (m) { datos.id = m[1].trim().replace(/\s+/g, "-"); break; }
-  }
+function req(id,errId,msg){
+  const v=document.getElementById(id).value.trim();
+  document.getElementById(errId).textContent=v?"":msg;
+  return !!v;
+}
 
-  // ── Marca / Cliente ──
-  const marcas = ["NGR", "Hiraoka", "Tailoy", "Softys"];
-  for (const marca of marcas) {
-    if (t.toLowerCase().includes(marca.toLowerCase())) { datos.marca = marca; break; }
-  }
+function registrarCiclo(){
+  let ok=true;
+  ok=req("r-periodo","err-periodo","Requerido")&&ok;
+  ok=req("r-marca","err-marca","Seleccione marca")&&ok;
+  ok=req("r-id","err-id","Requerido")&&ok;
+  ok=req("r-recepcion","err-recepcion","Requerido")&&ok;
+  ok=req("r-servicio","err-servicio","Requerido")&&ok;
+  const cv=parseFloat(document.getElementById("r-costo").value);
+  if(!cv||cv<=0){ document.getElementById("err-costo").textContent="Importe inválido"; ok=false; }
+  else document.getElementById("err-costo").textContent="";
+  if(!ok) return;
 
-  // ── Fechas ──
-  // Buscar fecha de emisión / período (dd/mm/yyyy o dd-mm-yyyy)
-  const rxFechas = /(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/g;
-  const fechas = [];
-  let fm;
-  while ((fm = rxFechas.exec(t)) !== null) {
-    const d = parseInt(fm[1]), mo = parseInt(fm[2]), y = parseInt(fm[3]);
-    if (mo >= 1 && mo <= 12 && d >= 1 && d <= 31 && y >= 2020 && y <= 2030)
-      fechas.push({ iso: `${y}-${String(mo).padStart(2,"0")}-${String(d).padStart(2,"0")}`, mes: `${y}-${String(mo).padStart(2,"0")}` });
-  }
-  if (fechas.length > 0) {
-    datos.recepcion = fechas[0].iso;
-    datos.periodo   = fechas[0].mes;
-  }
-  // Si hay dos fechas distintas, la más reciente es recepción
-  if (fechas.length > 1) {
-    fechas.sort((a, b) => a.iso.localeCompare(b.iso));
-    datos.periodo   = fechas[0].mes;
-    datos.recepcion = fechas[fechas.length - 1].iso;
-  }
+  const periodo=document.getElementById("r-periodo").value;
+  const marca=document.getElementById("r-marca").value;
+  const ciclo={
+    id:         document.getElementById("r-id").value.trim(),
+    marca, periodo,
+    servicio:   document.getElementById("r-servicio").value.trim(),
+    costo:      cv,
+    recepcion:  document.getElementById("r-recepcion").value,
+    nfactura:   document.getElementById("r-nfactura").value.trim(),
+    clienteReal:document.getElementById("r-clientereal").value?parseFloat(document.getElementById("r-clientereal").value):null,
+    servicioFC: document.getElementById("r-serviciofc").value.trim(),
+    fechaEmisionFC:document.getElementById("r-fechaemision").value,
+  };
 
-  // ── Importe / Monto total ──
-  const rxMonto = [
-    /(?:TOTAL|Importe Total|Monto Total|Total a Pagar|IMPORTE)[^\d]*S\/\.?\s*([\d,]+\.?\d*)/i,
-    /(?:TOTAL|IMPORTE)\s+([\d,]+\.\d{2})/i,
-    /S\/\.?\s*([\d,]{4,}\.?\d*)/,
-  ];
-  for (const rx of rxMonto) {
-    const m = t.match(rx);
-    if (m) {
-      const n = parseFloat(m[1].replace(/,/g, ""));
-      if (!isNaN(n) && n > 0) { datos.costo = n; break; }
+  // Actualizar o agregar
+  const idx=facturas.findIndex(f=>f.marca===marca&&f.periodo===periodo);
+  if(idx>=0) facturas[idx]=ciclo; else facturas.unshift(ciclo);
+  guardar();
+  limpiarRegistro();
+  periodoActivo=periodo;
+  switchTab("mensual");
+}
+
+function limpiarRegistro(){
+  ["r-periodo","r-marca","r-id","r-recepcion","r-servicio","r-costo",
+   "r-nfactura","r-fechaemision","r-serviciofc","r-clientereal"].forEach(id=>{ document.getElementById(id).value=""; });
+  ["err-periodo","err-marca","err-id","err-recepcion","err-servicio","err-costo"].forEach(id=>{ document.getElementById(id).textContent=""; });
+  document.getElementById("ciclo-existente-aviso").innerHTML="";
+  document.getElementById("pdf-status-a").innerHTML="";
+  document.getElementById("pdf-status-b").innerHTML="";
+  document.getElementById("pdf-input-a").value="";
+  document.getElementById("pdf-input-b").value="";
+  calcMargenPreview();
+}
+
+function calcMargenPreview(){
+  const costo=parseFloat(document.getElementById("r-costo").value);
+  const real=parseFloat(document.getElementById("r-clientereal").value);
+  const el=document.getElementById("margin-pct-preview");
+  const div=document.getElementById("margin-divider");
+  if(!costo||isNaN(costo)||!real||isNaN(real)){
+    el.className="margin-divider-pct margin-none"; el.textContent="—";
+    div.style.background=""; return;
+  }
+  const mr=(real-costo)/costo;
+  const marca=document.getElementById("r-marca").value;
+  const reg=MARGENES[marca]||MARGENES.Otro;
+  const ok=reg.tipo==="fijo"?Math.abs(mr-reg.valor)<0.005:mr>=reg.min-0.001&&mr<=reg.max+0.001;
+  el.className="margin-divider-pct "+(ok?"margin-ok":"margin-warn");
+  el.textContent=(mr*100).toFixed(1)+"%";
+  div.style.background=ok?"var(--bg-success)":"var(--bg-warning)";
+}
+
+/* ══════════════════════════════════════
+   PDF — Extracción automática
+   ══════════════════════════════════════ */
+pdfjsLib.GlobalWorkerOptions.workerSrc=
+  "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+
+async function procesarPDF(file,seccion){
+  if(!file||file.type!=="application/pdf") return;
+  const statusEl=document.getElementById("pdf-status-"+seccion);
+  statusEl.innerHTML=`<div style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text-info)"><i class="ti ti-loader spin"></i> Leyendo PDF…</div>`;
+  try {
+    const buf=await file.arrayBuffer();
+    const pdf=await pdfjsLib.getDocument({data:buf}).promise;
+    let texto="";
+    for(let i=1;i<=pdf.numPages;i++){
+      const p=await pdf.getPage(i);
+      const c=await p.getTextContent();
+      texto+=c.items.map(it=>it.str).join(" ")+"\n";
     }
+    const datos=parsearPDF(texto,seccion);
+    autocompletar(datos,seccion);
+    const n=Object.values(datos).filter(v=>v).length;
+    statusEl.innerHTML=`<div class="notice notice-success" style="margin-bottom:0">
+      <i class="ti ti-circle-check" aria-hidden="true" style="flex-shrink:0"></i>
+      <div><strong>${file.name}</strong> — ${n} campo${n!==1?"s":""} detectado${n!==1?"s":""}. Revisá y editá lo que sea necesario.
+        <details style="margin-top:4px"><summary style="cursor:pointer;font-size:11px;color:var(--text-tertiary)">Ver texto extraído</summary>
+        <div style="font-size:11px;font-family:var(--font-mono);background:var(--bg-secondary);border-radius:var(--radius-md);padding:8px;margin-top:4px;max-height:80px;overflow-y:auto;white-space:pre-wrap;word-break:break-all">${texto.substring(0,600)}${texto.length>600?"…":""}</div></details>
+      </div></div>`;
+    document.getElementById("pdf-input-"+seccion).value="";
+  } catch(e){
+    statusEl.innerHTML=`<div class="notice notice-warning"><i class="ti ti-alert-triangle"></i><span>No se pudo leer el PDF. Completá los campos manualmente.</span></div>`;
   }
+}
 
-  // ── Descripción del servicio ──
-  const rxServ = [
-    /(?:Descripci[oó]n|Detalle|Concepto|Servicio)[^:]*:\s*([^\n\r.]{10,80})/i,
-    /(?:por concepto de|servicios de)\s+([^.\n]{10,80})/i,
-  ];
-  for (const rx of rxServ) {
-    const m = t.match(rx);
-    if (m) { datos.servicio = m[1].trim().substring(0, 120); break; }
+function parsearPDF(texto,seccion){
+  const t=texto.replace(/\s+/g," ");
+  const datos={};
+  // N° documento
+  const rxId=[/(?:N[°ú]|Nro\.?|Número)[^:]*[:.\s]+([A-Z]{0,4}[-\s]?\d{3,}[-\s]?\d{0,8})/i,/([A-Z]{1,4}[-]?\d{3,}[-]?\d{3,})/];
+  for(const rx of rxId){ const m=t.match(rx); if(m){datos.id=m[1].trim().replace(/\s+/g,"-");break;} }
+  // Fechas
+  const rxF=/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/g; const fechas=[]; let fm;
+  while((fm=rxF.exec(t))!==null){
+    const d=parseInt(fm[1]),mo=parseInt(fm[2]),y=parseInt(fm[3]);
+    if(mo>=1&&mo<=12&&d>=1&&d<=31&&y>=2020&&y<=2030)
+      fechas.push({iso:`${y}-${String(mo).padStart(2,"0")}-${String(d).padStart(2,"0")}`,mes:`${y}-${String(mo).padStart(2,"0")}`});
   }
-
+  if(fechas.length>0){ datos.fecha=fechas[0].iso; datos.periodo=fechas[0].mes; }
+  // Importe
+  const rxM=[/(?:TOTAL|Importe Total|Total a Pagar)[^\d]*S\/\.?\s*([\d,]+\.?\d*)/i,/S\/\.?\s*([\d,]{4,}\.?\d*)/];
+  for(const rx of rxM){ const m=t.match(rx); if(m){const n=parseFloat(m[1].replace(/,/g,""));if(!isNaN(n)&&n>0){datos.importe=n;break;}} }
+  // Marca (solo sección A)
+  if(seccion==="a"){
+    for(const marca of MARCAS){ if(t.toLowerCase().includes(marca.toLowerCase())){datos.marca=marca;break;} }
+  }
+  // Descripción
+  const rxS=[/(?:Descripci[oó]n|Detalle|Concepto)[^:]*:\s*([^\n\r.]{10,80})/i,/(?:por concepto de|servicios de)\s+([^.\n]{10,80})/i];
+  for(const rx of rxS){ const m=t.match(rx); if(m){datos.servicio=m[1].trim().substring(0,120);break;} }
   return datos;
 }
 
-function autocompletar(datos) {
-  if (datos.id)       { document.getElementById("f-id").value = datos.id; }
-  if (datos.marca)    { document.getElementById("f-marca").value = datos.marca; }
-  if (datos.periodo)  { document.getElementById("f-periodo").value = datos.periodo; }
-  if (datos.recepcion){ document.getElementById("f-recepcion").value = datos.recepcion; }
-  if (datos.servicio) { document.getElementById("f-servicio").value = datos.servicio; }
-  if (datos.costo)    { document.getElementById("f-costo").value = datos.costo.toFixed(2); }
-  // Disparar preview de margen si hay marca y costo
-  if (datos.marca || datos.costo) previewMargen();
+function autocompletar(datos,seccion){
+  if(seccion==="a"){
+    if(datos.id)      document.getElementById("r-id").value=datos.id;
+    if(datos.fecha)   document.getElementById("r-recepcion").value=datos.fecha;
+    if(datos.periodo) document.getElementById("r-periodo").value=datos.periodo;
+    if(datos.marca)   document.getElementById("r-marca").value=datos.marca;
+    if(datos.servicio)document.getElementById("r-servicio").value=datos.servicio;
+    if(datos.importe) document.getElementById("r-costo").value=datos.importe.toFixed(2);
+    onPeriodoMarcaChange();
+  } else {
+    if(datos.id)      document.getElementById("r-nfactura").value=datos.id;
+    if(datos.fecha)   document.getElementById("r-fechaemision").value=datos.fecha;
+    if(datos.servicio)document.getElementById("r-serviciofc").value=datos.servicio;
+    if(datos.importe) document.getElementById("r-clientereal").value=datos.importe.toFixed(2);
+  }
+  calcMargenPreview();
 }
 
-/* ── Export CSV ── */
+/* ══════════════════════════════════════
+   EXPORT CSV
+   ══════════════════════════════════════ */
 function exportCSV(){
-  const headers = ["Factura GP","Marca","Período","Servicio","Costo GP","FC Esperada","FC Real","Margen Real %","Desfase días","Estado"];
-  const rows = facturas.map(f=>{
-    const mr = margenReal(f);
-    return [f.id, f.marca, f.periodo, `"${f.servicio}"`, f.costo, fcEsperada(f).replace("S/ ",""),
-            f.clienteReal||"", mr!==null?(mr*100).toFixed(1):"", desfase(f), calcStatus(f)];
+  const headers=["Período","Marca","N° GP","Servicio GP","Costo GP (S/)","N° FC IFC","Servicio FC","Importe FC (S/)","Margen %","Desfase días","Estado"];
+  const rows=facturas.map(f=>{
+    const mr=margenReal(f);
+    return [f.periodo,f.marca,f.id,`"${f.servicio||""}"`,f.costo,f.nfactura||"",`"${f.servicioFC||""}"`,f.clienteReal||"",mr!==null?(mr*100).toFixed(1):"",desfase(f),calcStatus(f)];
   });
-  const csv = [headers,...rows].map(r=>r.join(",")).join("\n");
-  const a = document.createElement("a");
-  a.href = "data:text/csv;charset=utf-8,﻿" + encodeURIComponent(csv);
-  a.download = "auditoria_facturacion_ifc.csv";
+  const csv=[headers,...rows].map(r=>r.join(",")).join("\n");
+  const a=document.createElement("a");
+  a.href="data:text/csv;charset=utf-8,﻿"+encodeURIComponent(csv);
+  a.download="auditoria_ifc_"+periodoActivo+".csv";
   a.click();
 }
 
-/* ── Init ── */
-if(sessionStorage.getItem("ifc_auth")==="1") renderDashboard();
+/* ══════════════════════════════════════
+   INIT
+   ══════════════════════════════════════ */
+function init(){
+  // Detectar mes más reciente con datos, sino mes actual
+  const mesesConDatos=[...new Set(facturas.map(f=>f.periodo))].sort().reverse();
+  if(mesesConDatos.length) periodoActivo=mesesConDatos[0];
+  else {
+    const now=new Date();
+    periodoActivo=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}`;
+  }
+  switchTab("mensual");
+}
+
+if(sessionStorage.getItem("ifc_auth")==="1") init();
 </script>
 </body>
 </html>
